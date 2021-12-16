@@ -37,7 +37,6 @@ apr_global_mutex_t *harbourV2_mutex;
 static const char *harbourV2_mutex_type = "mod_hwapache";
 static PHB_ITEM hHash;
 static PHB_ITEM hMutex = NULL;
-char * szBody;
 
 //----------------------------------------------------------------//
 
