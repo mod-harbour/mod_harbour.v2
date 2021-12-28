@@ -8,39 +8,54 @@
 //----------------------------------------------------------------//
 
 #include 'hw_apache.ch'
+
 #define CRLF '<br>'
 
 //----------------------------------------------------------------//
 
 function AP_PostPairs( lUrlDecode )
 
-   local aPairs := hb_ATokens( AP_Body(), "&" )
-   local cPair, uPair, hPairs := {=>}
-   local nTable, aTable, cKey, cTag	
+   local aHeadersIn		:= AP_HeadersIn()
+   local cContentType 	:= lower( HB_HGetDef( aHeadersIn, 'Content-Type', '' ) )
+   local hPairs := {=>}
+   local aPairs, cPair, uPair, nTable, aTable, cKey, cTag	   
    
+   /*	cContentType can be:
+		'application/json'
+		'application/json;charset=utf-8'
+		...
+	*/
+   
+   if hb_at( 'application/json', cContentType ) > 0 
+   
+		hPairs := hb_jsondecode( AP_Body() )
+		
+	else 		
 
-   hb_default( @lUrlDecode, .T. )
-   cTag = If( lUrlDecode, '[]', '%5B%5D' )   
-  
-   for each cPair in aPairs      
+	   aPairs := hb_ATokens( AP_Body(), "&" )	
 	
-      if lUrlDecode
-        cPair = hb_urlDecode( cPair )
-      endif	  	
-	  
-      if ( uPair := At( "=", cPair ) ) > 0	  
-         cKey = Left( cPair, uPair - 1 )	
-         if ( nTable := At( cTag, cKey ) ) > 0 		
-            cKey = Left( cKey, nTable - 1 )			
-            aTable = HB_HGetDef( hPairs, cKey, {} ) 				
-            AAdd( aTable, SubStr( cPair, uPair + 1 ) )				
-            hPairs[ cKey ] = aTable
-         else						
-            hb_HSet( hPairs, cKey, SubStr( cPair, uPair + 1 ) )
-         endif
-      endif
-   next
-	  
+	   hb_default( @lUrlDecode, .T. )
+	   cTag = If( lUrlDecode, '[]', '%5B%5D' )
+	   
+	   for each cPair in aPairs
+		  if lUrlDecode
+			 cPair = hb_urlDecode( cPair )
+		  endif				
+
+		  if ( uPair := At( "=", cPair ) ) > 0	  
+			 cKey = Left( cPair, uPair - 1 )	
+			 if ( nTable := At( cTag, cKey ) ) > 0 		
+				cKey = Left( cKey, nTable - 1 )			
+				aTable = HB_HGetDef( hPairs, cKey, {} ) 				
+				AAdd( aTable, SubStr( cPair, uPair + 1 ) )				
+				hPairs[ cKey ] = aTable
+			 else						
+				hb_HSet( hPairs, cKey, SubStr( cPair, uPair + 1 ) )
+			 endif
+		  endif
+	   next
+   
+	endif     
     
 return hPairs
 
