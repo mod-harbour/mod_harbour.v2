@@ -50,28 +50,34 @@ function AP_GetPairs( lUrlDecode )
 
    local cArgs 	:= AP_Args()
    local hPairs := {=>}
-   local cPair, uPair, nPos, cKey
+   local cPair, uPair, nPos, cKey, cTag
 	
    hb_default( @lUrlDecode, .T. )
+   cTag = If( lUrlDecode, '[]', '%5B%5D' )
    
    for each cPair in hb_ATokens( cArgs, "&" )
-      if lUrlDecode
-         cPair = hb_urldecode( cPair )
-      endif		
-      if ( uPair := At( "=", cPair ) ) > 0
-         cKey := Left( cPair, uPair - 1 )			
-	 if ( nPos := HB_HPos( hPairs, cKey ) ) == 0
-	    hb_HSet( hPairs, cKey, SubStr( cPair, uPair + 1 ) )
-	 else
-	    uValue = hPairs[ cKey ] 				
-            hPairs[ cKey ] = {}
-	    AAdd( hPairs[ cKey ], uValue )
-            AAdd( hPairs[ cKey ], SubStr( cPair, uPair + 1 ) )
-         endif				
-      else
-	 HB_HSet( hPairs, Lower( cPair ), '' )
-      endif
+
+		if !empty( cPair )
+
+		  if lUrlDecode
+			 cPair = hb_urldecode( cPair )
+		  endif		 
+		  
+		  if ( uPair := At( "=", cPair ) ) > 0	  
+			 cKey = Left( cPair, uPair - 1 )	
+			 if ( nTable := At( cTag, cKey ) ) > 0 		
+				cKey = Left( cKey, nTable - 1 )			
+				aTable = HB_HGetDef( hPairs, cKey, {} ) 				
+				AAdd( aTable, SubStr( cPair, uPair + 1 ) )				
+				hPairs[ cKey ] = aTable
+			 else						
+				hb_HSet( hPairs, cKey, SubStr( cPair, uPair + 1 ) )
+			 endif
+		  endif	
+	  
+	    endif
    next
+
 
 return hPairs
 
