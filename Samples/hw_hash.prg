@@ -12,6 +12,6 @@ FUNCTION test()
       HW_HashSet( 'var', 1 )
    ENDIF
 
-   HW_Print( "HW_HASH['var'] value: ", HW_HashGet( 'var' ) )
+   ? "HW_HASH['var'] value: ", HW_HashGet( 'var' ) 
 
 RETURN NIL
