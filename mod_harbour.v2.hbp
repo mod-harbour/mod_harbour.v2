@@ -1,5 +1,5 @@
 -hbdynvm
--ohw_apacheV2.so
+-ooutput/win64/mod_harbour.v2.so
 -mt
 -trace
 -info
@@ -22,9 +22,17 @@
 -llibhttpd
 
 -ic:\xampp\apache\include
-hw_apache.prg
-hw_apacheV2.c
-main.prg
+source/hw_apache.prg
+source/mod_harbour.c
+source/ap_func.prg
+source/ap_func_c.c
+source/cookies.prg
+source/legacy_func.prg
+source/legacy_func_c.c
+source/main.prg
+source/persistence.prg
+source/prepro.prg
+
 
 {allmsvc}-cflag=-Ic:\xampp\apache\include
 {gcc}-cflag=-I/usr/include/apache2

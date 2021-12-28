@@ -1,0 +1,34 @@
+FUNCTION hb_HtmlEncode( cString )
+
+   LOCAL cChars :=  hb_UTF8ToStr( "<>ÉÍÑÓÚáéíñóú" )
+   LOCAL aHtmlUnicEntities := { ;
+      "&lt;", ;
+      "&gt;", ;
+      "&Eacute;", ;
+      "&Iacute;", ;
+      "&Ntilde;", ;
+      "&Oacute;", ;
+      "&Uacute;", ;
+      "&aacute;", ;
+      "&eacute;", ;
+      "&iacute;", ;
+      "&ntilde;", ;
+      "&oacute;", ;
+      "&uacute;" }
+
+RETURN hb_StrReplace( hb_UTF8ToStr( cString ), cChars, aHtmlUnicEntities )
+
+
+
+FUNCTION HW_PRINT( ... )
+
+   LOCAL cBuffer := ''
+   LOCAL aParams := hb_AParams()
+
+   FOR i = 1 TO Len( aParams )
+      cBuffer += valtochar( aParams[ i ] )
+   NEXT
+
+   AP_RPUTS( cBuffer )
+
+RETURN
