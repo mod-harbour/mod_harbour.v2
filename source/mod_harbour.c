@@ -38,7 +38,6 @@ apr_global_mutex_t *harbourV2_mutex;
 static const char *harbourV2_mutex_type = "mod_hwapache";
 static PHB_ITEM hHash;
 static PHB_ITEM hMutex = NULL;
-char * szBody;
 
 //----------------------------------------------------------------//
 
@@ -51,15 +50,39 @@ static apr_status_t shm_cleanup_wrapper(void *unused)
 
 //----------------------------------------------------------------//
 
+void hw_StartMutex() 
+{
+#ifdef _WINDOWS_
+   apr_status_t rs;    
+   while(1) {
+      rs = apr_global_mutex_trylock(harbourV2_mutex);
+      if (APR_SUCCESS == rs)
+         break;
+   };
+#endif	
+}
+
+//----------------------------------------------------------------//
+
+void hw_EndMutex()
+{
+#ifdef _WINDOWS_
+   apr_status_t rs;    
+   rs = apr_global_mutex_unlock(harbourV2_mutex);  
+#endif	
+}
+
+//----------------------------------------------------------------//
+
 static HB_THREAD_STARTFUNC( hb_apache ) {
 
-   PHB_ITEM pResult = NULL;
    hb_vmThreadInit( NULL );
    hb_vmPushDynSym( hb_dynsymFind( "HW_THREAD" ) );
    hb_vmPushNil(); 
    hb_vmPushPointer( Cargo );
    hb_vmFunction( 1 );
    hb_vmThreadQuit();
+
    HB_THREAD_END
 }
 
@@ -78,11 +101,28 @@ request_rec * GetRequestRec( void )
 HB_FUNC( HW_EXITSTATUS )
 {
    request_rec *rec = GetRequestRec();
-   rec->status = hb_parni( 1 );
+   if( hb_extIsNil( 1 ) ) {
+      hb_retni( rec->status );
+   } else {
+      rec->status = hb_parni( 1 );
+   };
 }
 
 //----------------------------------------------------------------//
 
+HB_FUNC( HW_STARTMUTEX )
+{
+   hw_StartMutex();
+}
+
+//----------------------------------------------------------------//
+
+HB_FUNC( HW_ENDMUTEX )
+{
+   hw_EndMutex();
+}
+
+//----------------------------------------------------------------//
 
 HB_FUNC( HW_GETBODY )
 {
@@ -226,36 +266,29 @@ char * GetErrorMessage( DWORD dwLastError )
 
 static int harbourV2_handler( request_rec * r ) {
 
-   apr_status_t rs;
-
    HB_THREAD_HANDLE hThread;
 
    if( strcmp( r->handler, "harbour" ) )
      return DECLINED;
 
    r->content_type = "text/html"; //revisar
+   r->status = 200;
 
    ap_add_cgi_vars( r );
    ap_add_common_vars( r );
 
+   hw_StartMutex();
    if( ! hb_vmIsActive() ) {  
-      hb_vmInit( HB_TRUE );
+      hb_vmInit( HB_FALSE );
    };
+   hw_EndMutex();
 
    HB_THREAD_ID th_id;
-#ifdef _WINDOWS_
-   while(1) {
-      rs = apr_global_mutex_trylock(harbourV2_mutex);
-      if (APR_SUCCESS == rs)
-         break;
-   };
-#endif	
    hThread = hb_threadCreate( &th_id, hb_apache, r );   
    hb_threadJoin( hThread );
-#ifdef _WINDOWS_
-   rs = apr_global_mutex_unlock(harbourV2_mutex);  
-#endif	
+
    return OK;
+
 }
 
 //----------------------------------------------------------------//

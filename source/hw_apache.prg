@@ -6,7 +6,7 @@
 
 
 #ifdef __PLATFORM__WINDOWS
-  #include "externs.hbx"
+#include "externs.hbx"
 #endif
 
 #include "hbthread.ch"
@@ -18,25 +18,27 @@ THREAD STATIC request_rec
 
 FUNCTION Main()
 
-	AddPPRules()
-
 RETURN NIL
 
 FUNCTION HW_Thread( r )
 
    LOCAL cFileName
+   LOCAL pThreadWait
+   LOCAL oHrb
 
-   request_rec := r   
+   request_rec := r
 
    ErrorBlock( {| oError | AP_RPuts( GetErrorInfo( oError ) ), Break( oError ) } )
 
-   cFileName = AP_FileName()		//	HW_FileName()
+   pThreadWait := hb_threadStart( @HW_RequestMaxTime(), hb_threadSelf(), 15 ) // 15 Sec max
+
+   cFileName = AP_FileName()  // HW_FileName()
 
    IF File( cFileName )
 
       IF Lower( Right( cFileName, 4 ) ) == ".hrb"
 
-         hb_hrbDo( hb_hrbLoad( 2, cFileName ), AP_Args() )		//	HW_Args()
+         hb_hrbDo( hb_hrbLoad( 2, cFileName ), AP_Args() )  // HW_Args()
 
       ELSE
 
@@ -44,7 +46,7 @@ FUNCTION HW_Thread( r )
             SubStr( cFileName, 1, RAt( "/", cFileName ) + RAt( "\", cFileName ) - 1 ) )
          cCode := MemoRead( cFileName )
 
-         Execute( cCode, AP_Args() )	// HW_Execute( cCode )
+         Execute( cCode, AP_Args() ) // HW_Execute( cCode )
 
       ENDIF
 
@@ -54,12 +56,28 @@ FUNCTION HW_Thread( r )
 
    ENDIF
 
+   while( hb_threadQuitRequest( pThreadWait ) )
+      hb_idleSleep( 0.01 )
+   ENDDO
+
 RETURN
 
-//----------------------------------------------------------------//
+// ----------------------------------------------------------------//
 
 FUNCTION GetRequestRec()
 
 RETURN request_rec
 
-//----------------------------------------------------------------//
+// ----------------------------------------------------------------//
+
+FUNCTION HW_RequestMaxTime( pThread, nTime )
+
+   hb_idleSleep( nTime )
+
+   while( hb_threadQuitRequest( pThread ) )
+      hb_idleSleep( 0.01 )
+   ENDDO
+
+RETURN
+
+// ----------------------------------------------------------------//

@@ -5,12 +5,9 @@
 ** Developed by Antonio Linares alinares@fivetechsoft.com
 ** MIT license https://github.com/FiveTechSoft/mod_harbour/blob/master/LICENSE
 */
-
 #include "hbclass.ch"
 
-static hPP
-
-//----------------------------------------------------------------//
+THREAD STATIC hPP
 
 function AddPPRules()
 
@@ -41,143 +38,144 @@ function AddPPRules()
 		      
 return nil
 
-//----------------------------------------------------------------//
 
-function ExecuteHrb( oHrb, cArgs )
+FUNCTION ExecuteHrb( oHrb, cArgs )
 
-   ErrorBlock( { | oError | AP_RPuts( GetErrorInfo( oError ) ), Break( oError ) } )
+   ErrorBlock( {| oError | AP_RPuts( GetErrorInfo( oError ) ), Break( oError ) } )
 
-return hb_HrbDo( oHrb, cArgs )
+RETURN hb_hrbDo( oHrb, cArgs )
 
-//----------------------------------------------------------------//
+// ----------------------------------------------------------------//
 
-function Execute( cCode, ... )
+FUNCTION Execute( cCode, ... )
 
-   local oHrb, uRet, lReplaced := .T.
-   local cHBheaders1 := "~/harbour/include"
-   local cHBheaders2 := "c:\harbour\include"   
+   LOCAL oHrb, pCode, uRet, lReplaced := .T.
+   LOCAL cHBheaders1 := "~/harbour/include"
+   LOCAL cHBheaders2 := "c:\harbour\include"
 
-   ErrorBlock( { | oError | AP_RPuts( GetErrorInfo( oError, @cCode ) ), Break( oError ) } )
+   ErrorBlock( {| oError | AP_RPuts( GetErrorInfo( oError, @cCode ) ), Break( oError ) } )
 
-   while lReplaced 
+   AddPPRules()
+
+   WHILE lReplaced
       lReplaced = ReplaceBlocks( @cCode, "{%", "%}" )
-      cCode = __pp_process( hPP, cCode )
-   end
+      cCode = __pp_Process( hPP, cCode )
+   END
 
-   oHrb = HB_CompileFromBuf( cCode, .T., "-n", "-q2", "-I" + cHBheaders1, "-I" + cHBheaders2,;
-                             "-I" + hb_GetEnv( "HB_INCLUDE" ), hb_GetEnv( "HB_USER_PRGFLAGS" ) )
-   if ! Empty( oHrb )
-      uRet = hb_HrbDo( hb_HrbLoad( 2, oHrb ), ... )
-	  //	Check Diego usa: hb_HrbLoad( 2, oHrb )
-   endif
+   oHrb = HB_CompileFromBuf( cCode, .T., "-n", "-q2", "-I" + cHBheaders1, "-I" + cHBheaders2, ;
+      "-I" + hb_GetEnv( "HB_INCLUDE" ), hb_GetEnv( "HB_USER_PRGFLAGS" ) )
 
-return uRet
+   IF ! Empty( oHrb )
+      uRet := hb_hrbDo( hb_hrbLoad( 1, oHrb ), ... )
+// Check Diego usa: hb_HrbLoad( 2, oHrb )
+   ENDIF
+
+RETURN uRet
 
 
-//----------------------------------------------------------------//
+// ----------------------------------------------------------------//
 
-procedure DoBreak( oError )
-
+PROCEDURE DoBreak( oError )
 
    ? GetErrorInfo( oError )
 
    BREAK
 
 
-//----------------------------------------------------------------//
+// ----------------------------------------------------------------//
 
-function InlinePRG( cText, oTemplate, cParams, ... )
+FUNCTION InlinePRG( cText, oTemplate, cParams, ... )
 
-   local nStart, nEnd, cCode, cResult
+   LOCAL nStart, nEnd, cCode, cResult
 
-   if PCount() > 1
+   IF PCount() > 1
       oTemplate = Template()
-      if PCount() > 2
+      IF PCount() > 2
          oTemplate:cParams = cParams
-      endif   
-   endif   
+      ENDIF
+   ENDIF
 
-   while ( nStart := At( "<?prg", cText ) ) != 0
+   WHILE ( nStart := At( "<?prg", cText ) ) != 0
       nEnd  = At( "?>", SubStr( cText, nStart + 5 ) )
       cCode = SubStr( cText, nStart + 5, nEnd - 1 )
-      if oTemplate != nil
+      IF oTemplate != nil
          AAdd( oTemplate:aSections, cCode )
-      endif   
+      ENDIF
       cText = SubStr( cText, 1, nStart - 1 ) + ( cResult := ExecInline( cCode, cParams, ... ) ) + ;
-              SubStr( cText, nStart + nEnd + 6 )
-      if oTemplate != nil
+         SubStr( cText, nStart + nEnd + 6 )
+      IF oTemplate != nil
          AAdd( oTemplate:aResults, cResult )
-      endif   
-   end 
-   
-   if oTemplate != nil
+      ENDIF
+   END
+
+   IF oTemplate != nil
       oTemplate:cResult = cText
-   endif   
-   
-return cText
+   ENDIF
 
-//----------------------------------------------------------------//
+RETURN cText
 
-function ExecInline( cCode, cParams, ... )
+// ----------------------------------------------------------------//
 
-   if cParams == nil
+FUNCTION ExecInline( cCode, cParams, ... )
+
+   IF cParams == nil
       cParams = ""
-   endif   
+   ENDIF
 
-return Execute( "function __Inline( " + cParams + " )" + HB_OsNewLine() + cCode, ... )   
+RETURN Execute( "function __Inline( " + cParams + " )" + hb_osNewLine() + cCode, ... )
 
-//----------------------------------------------------------------//
+// ----------------------------------------------------------------//
 
-function ReplaceBlocks( cCode, cStartBlock, cEndBlock, cParams, ... )
+FUNCTION ReplaceBlocks( cCode, cStartBlock, cEndBlock, cParams, ... )
 
-   local nStart, nEnd, cBlock
-   local lReplaced := .F.
-   
+   LOCAL nStart, nEnd, cBlock
+   LOCAL lReplaced := .F.
+
    hb_default( @cStartBlock, "{{" )
    hb_default( @cEndBlock, "}}" )
    hb_default( @cParams, "" )
 
-   while ( nStart := At( cStartBlock, cCode ) ) != 0 .and. ;
+   WHILE ( nStart := At( cStartBlock, cCode ) ) != 0 .AND. ;
          ( nEnd := At( cEndBlock, cCode ) ) != 0
       cBlock = SubStr( cCode, nStart + Len( cStartBlock ), nEnd - nStart - Len( cEndBlock ) )
       cCode = SubStr( cCode, 1, nStart - 1 ) + ;
-              ValToChar( Eval( &( "{ |" + cParams + "| " + cBlock + " }" ), ... ) ) + ;
-      SubStr( cCode, nEnd + Len( cEndBlock ) )
-          lReplaced = .T.
-   end
-   
-return If( HB_PIsByRef( 1 ), lReplaced, cCode )
+         ValToChar( Eval( &( "{ |" + cParams + "| " + cBlock + " }" ), ... ) ) + ;
+         SubStr( cCode, nEnd + Len( cEndBlock ) )
+      lReplaced = .T.
+   END
 
-//----------------------------------------------------------------//
+RETURN If( hb_PIsByRef( 1 ), lReplaced, cCode )
+
+// ----------------------------------------------------------------//
 
 CLASS Template
 
    DATA aSections INIT {}
    DATA aResults  INIT {}
-   DATA cParams   
+   DATA cParams
    DATA cResult
 
 ENDCLASS
 
-//----------------------------------------------------------------//
+// ----------------------------------------------------------------//
 
-function LoadHRB( cHrbFile_or_oHRB )
+FUNCTION LoadHRB( cHrbFile_or_oHRB )
 
-   local lResult := .F.
+   LOCAL lResult := .F.
 
-   if ValType( cHrbFile_or_oHRB ) == "C"
-      if File( hb_GetEnv( "PRGPATH" ) + "/" + cHrbFile_or_oHRB )
-         AAdd( M->getList,;
-            hb_HrbLoad( 1, hb_GetEnv( "PRGPATH" ) + "/" + cHrbFile_or_oHRB ) )
-         lResult = .T.   
-      endif      
-   endif
-   
-   if ValType( cHrbFile_or_oHRB ) == "P"
-      AAdd( M->getList, hb_HrbLoad( 1, cHrbFile_or_oHRB ) )
+   IF ValType( cHrbFile_or_oHRB ) == "C"
+      IF File( hb_GetEnv( "PRGPATH" ) + "/" + cHrbFile_or_oHRB )
+         AAdd( M->getList, ;
+            hb_hrbLoad( 2, hb_GetEnv( "PRGPATH" ) + "/" + cHrbFile_or_oHRB ) )
+         lResult = .T.
+      ENDIF
+   ENDIF
+
+   IF ValType( cHrbFile_or_oHRB ) == "P"
+      AAdd( M->getList, hb_hrbLoad( 1, cHrbFile_or_oHRB ) )
       lResult = .T.
-   endif
-   
-return lResult   
+   ENDIF
 
-//----------------------------------------------------------------//
+RETURN lResult
+
+// ----------------------------------------------------------------//
