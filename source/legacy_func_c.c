@@ -31,7 +31,7 @@ int mh_rputslen( const char * szText, HB_SIZE iLength )
 
 //----------------------------------------------------------------//
 
-HB_FUNC( AP_RPUTS )
+HB_FUNC( AP_RPUTS_OUT )
 {
    int iParams = hb_pcount(), iParam;
 

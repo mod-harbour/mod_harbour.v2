@@ -20,7 +20,7 @@ function AddPPRules()
       endif 	 
    endif
 
-   __pp_addRule( hPP, "#xcommand ? [<explist,...>] => AP_RPuts( '<br>' [,<explist>] )" )
+   __pp_addRule( hPP, "#xcommand ? [<explist,...>] => AP_RPUTS( '<br>' [,<explist>] )" )
    __pp_addRule( hPP, "#xcommand ?? [<explist,...>] => AP_RPuts( [<explist>] )" )
    __pp_addRule( hPP, "#define CRLF hb_OsNewLine()" )
    __pp_addRule( hPP, "#xcommand TEXT <into:TO,INTO> <v> => #pragma __cstream|<v>:=%s" )
@@ -56,10 +56,11 @@ FUNCTION Execute( cCode, ... )
    ErrorBlock( {| oError | AP_RPuts( GetErrorInfo( oError, @cCode ) ), Break( oError ) } )
 
    AddPPRules()
+   
 
    WHILE lReplaced
       lReplaced = ReplaceBlocks( @cCode, "{%", "%}" )
-      cCode = __pp_Process( hPP, cCode )
+      cCode = __pp_Process( hPP, cCode )      
    END
 
    oHrb = HB_CompileFromBuf( cCode, .T., "-n", "-q2", "-I" + cHBheaders1, "-I" + cHBheaders2, ;

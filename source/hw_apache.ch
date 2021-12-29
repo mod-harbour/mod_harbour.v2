@@ -1,5 +1,4 @@
-//#xcommand ? [<explist,...>] => AP_RPuts( '<br>' [,<explist>] )
-#xcommand ? [<explist,...>] => HW_PRINT( '<br>' [,<explist>] )
-#xcommand ?? [<explist,...>] => HW_PRINT( [<explist>] )
+#xcommand ? [<explist,...>] => AP_RPuts( '<br>' [,<explist>] )
+#xcommand ?? [<explist,...>] => AP_RPuts( [<explist>] )
 
 #define CRLF 			hb_OsNewLine()

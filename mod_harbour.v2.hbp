@@ -32,6 +32,7 @@ source/legacy_func_c.c
 source/main.prg
 source/persistence.prg
 source/prepro.prg
+source/trace.prg
 
 
 {allmsvc}-cflag=-Ic:\xampp\apache\include

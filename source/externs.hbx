@@ -3399,6 +3399,7 @@ extern __XSAVESCREEN
 extern HB_URLDECODE 
 
 extern AP_RPUTS
+extern AP_RPUTS_OUT
 extern AP_BODY
 extern AP_FILENAME
 extern AP_GETENV
@@ -3423,7 +3424,6 @@ extern PTRTOSTR
 extern PTRTOUI
 
 extern HW_WRITE
-extern HW_PRINT
 extern HW_HASH
 extern HW_HASHSET
 extern HW_HASHGET

@@ -15,10 +15,16 @@
 #define CRLF hb_OsNewLine()
 
 THREAD STATIC request_rec
+THREAD STATIC _cBuffer_Out 	:= ''
+
 
 FUNCTION Main()
 
+
+  
 RETURN NIL
+
+//	------------------------------------------------------------------	//
 
 FUNCTION HW_Thread( r )
 
@@ -58,7 +64,9 @@ FUNCTION HW_Thread( r )
 
    while( hb_threadQuitRequest( pThreadWait ) )
       hb_idleSleep( 0.01 )
-   ENDDO
+   ENDDO   
+   
+   AP_RPuts_Out( _cBuffer_Out )
 
 RETURN
 
@@ -80,11 +88,11 @@ FUNCTION HW_RequestMaxTime( pThread, nTime )
 
 RETURN
 
+
 // ----------------------------------------------------------------//
 
-FUNCTION HW_PRINT( ... )
-
-   LOCAL cBuffer := ''
+FUNCTION AP_RPUTS( ... )
+  
    LOCAL aParams := hb_AParams()
    LOCAL n 		 := Len( aParams )
    
@@ -93,12 +101,12 @@ FUNCTION HW_PRINT( ... )
    ENDIF
 
    FOR i = 1 TO n - 1 
-      cBuffer += valtochar( aParams[ i ] ) + ' '
+      _cBuffer_Out += valtochar( aParams[ i ] ) + ' '
    NEXT
 
-   cBuffer += valtochar( aParams[ n ] )
-	
-   AP_RPUTS( cBuffer )  
+   _cBuffer_Out += valtochar( aParams[ n ] )
+   
+_d( 'ap_rputs', _cBuffer_Out )   
 
 RETURN
 
