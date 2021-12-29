@@ -18,7 +18,8 @@ function AP_PostPairs( lUrlDecode )
    local aHeadersIn		:= AP_HeadersIn()
    local cContentType 	:= lower( HB_HGetDef( aHeadersIn, 'Content-Type', '' ) )
    local hPairs := {=>}
-   local aPairs, cPair, uPair, nTable, aTable, cKey, cTag	   
+   local aPairs, cPair, uPair, nTable, aTable, cKey, cTag
+	
    
    /*	cContentType can be:
 		'application/json'
@@ -30,16 +31,18 @@ function AP_PostPairs( lUrlDecode )
    
 		hPairs := hb_jsondecode( AP_Body() )
 		
-	else 		
-
-	   aPairs := hb_ATokens( AP_Body(), "&" )	
+	else 
+	  
+	   aPairs := hb_ATokens( AP_Body(), "&" )	   
 	
 	   hb_default( @lUrlDecode, .T. )
+	   
 	   cTag = If( lUrlDecode, '[]', '%5B%5D' )
 	   
 	   for each cPair in aPairs
+	   
 		  if lUrlDecode
-			 cPair = hb_urlDecode( cPair )
+			 cPair = hb_urlDecode( cPair )			 
 		  endif				
 
 		  if ( uPair := At( "=", cPair ) ) > 0	  
@@ -49,13 +52,14 @@ function AP_PostPairs( lUrlDecode )
 				aTable = HB_HGetDef( hPairs, cKey, {} ) 				
 				AAdd( aTable, SubStr( cPair, uPair + 1 ) )				
 				hPairs[ cKey ] = aTable
-			 else						
-				hb_HSet( hPairs, cKey, SubStr( cPair, uPair + 1 ) )
+			 else	 
+				hb_HSet( hPairs, cKey, SubStr( cPair, uPair + 1 ) )				
 			 endif
 		  endif
+		  
 	   next
    
-	endif     
+	endif  
     
 return hPairs
 

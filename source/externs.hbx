@@ -3423,6 +3423,7 @@ extern PTRTOSTR
 extern PTRTOUI
 
 extern HW_WRITE
+extern HW_PRINT
 extern HW_HASH
 extern HW_HASHSET
 extern HW_HASHGET

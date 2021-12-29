@@ -81,3 +81,25 @@ FUNCTION HW_RequestMaxTime( pThread, nTime )
 RETURN
 
 // ----------------------------------------------------------------//
+
+FUNCTION HW_PRINT( ... )
+
+   LOCAL cBuffer := ''
+   LOCAL aParams := hb_AParams()
+   LOCAL n 		 := Len( aParams )
+   
+   IF n == 0
+	  RETURN NIL
+   ENDIF
+
+   FOR i = 1 TO n - 1 
+      cBuffer += valtochar( aParams[ i ] ) + ' '
+   NEXT
+
+   cBuffer += valtochar( aParams[ n ] )
+	
+   AP_RPUTS( cBuffer )  
+
+RETURN
+
+// ----------------------------------------------------------------//
