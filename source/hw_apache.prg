@@ -34,7 +34,7 @@ FUNCTION HW_Thread( r )
 
    request_rec := r
 
-   ErrorBlock( {| oError | AP_RPuts( GetErrorInfo( oError ) ), Break( oError ) } )
+   ErrorBlock( {| oError | GetErrorInfo( oError ), Break( oError ) } )
 
    pThreadWait := hb_threadStart( @HW_RequestMaxTime(), hb_threadSelf(), 15 ) // 15 Sec max
 

@@ -148,8 +148,8 @@ return ""
 
 function GetErrorInfo( oError, cCode )
 
-   local n, cInfo := "Error: " + oError:description + "<br>"
-   local aLines, nLine
+	local cInfo := "Error: " + oError:description + "<br>"
+    local n, aLines, nLine   
 
    if ! Empty( oError:operation )
       cInfo += "operation: " + oError:operation + "<br>"
@@ -190,8 +190,9 @@ function GetErrorInfo( oError, cCode )
       next
    endif   
    
+   AP_RPUTS_OUT( cInfo )      
 
-return cInfo
+return nil
 
 //----------------------------------------------------------------//
 

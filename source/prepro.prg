@@ -53,7 +53,7 @@ FUNCTION Execute( cCode, ... )
    LOCAL cHBheaders1 := "~/harbour/include"
    LOCAL cHBheaders2 := "c:\harbour\include"
 
-   ErrorBlock( {| oError | AP_RPuts( GetErrorInfo( oError, @cCode ) ), Break( oError ) } )
+   ErrorBlock( {| oError | GetErrorInfo( oError, @cCode ), Break( oError ) } )
 
    AddPPRules()
    
