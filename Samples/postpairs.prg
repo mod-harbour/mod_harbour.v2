@@ -1,7 +1,4 @@
-//#xcommand ? [<explist,...>] => AP_RPuts('<br>'[,<explist>])
-#xcommand ? [<explist,...>] => HW_PRINT( '<br>' [,<explist>] )
-
-function Main()
+function main()
 	
    ? 'Body:' , AP_Body()   
    ? 'Method:', Ap_Method()
