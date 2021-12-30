@@ -28,7 +28,9 @@ function AddPPRules()
    __pp_addRule( hPP, "#xcommand TEMPLATE [ USING <x> ] [ PARAMS [<v1>] [,<vn>] ] => " + ;
                       '#pragma __cstream | AP_RPuts( InlinePrg( %s, [@<x>] [,<(v1)>][+","+<(vn)>] [, @<v1>][, @<vn>] ) )' )
    __pp_addRule( hPP, "#xcommand BLOCKS [ PARAMS [<v1>] [,<vn>] ] => " + ;
-                      '#pragma __cstream | AP_RPuts( ReplaceBlocks( %s, "{{", "}}" [,<(v1)>][+","+<(vn)>] [, @<v1>][, @<vn>] ) )' )   
+                      '#pragma __cstream | AP_RPuts( ReplaceBlocks( %s, "{{", "}}" [,<(v1)>][+","+<(vn)>] [, @<v1>][, @<vn>] ) )' ) 
+   __pp_addRule( hPP, "#xcommand BLOCKS TO <b> [ PARAMS [<v1>] [,<vn>] ] => " + ;
+                      '#pragma __cstream | <b>+=ReplaceBlocks( %s, "{{", "}}" [,<(v1)>][+","+<(vn)>] [, @<v1>][, @<vn>] )' )					  
    __pp_addRule( hPP, "#command ENDTEMPLATE => #pragma __endtext" )
    __pp_addRule( hPP, "#xcommand TRY  => BEGIN SEQUENCE WITH {| oErr | Break( oErr ) }" )
    __pp_addRule( hPP, "#xcommand CATCH [<!oErr!>] => RECOVER [USING <oErr>] <-oErr->" )
@@ -49,7 +51,7 @@ RETURN hb_hrbDo( oHrb, cArgs )
 
 FUNCTION Execute( cCode, ... )
 
-   LOCAL oHrb, pCode, uRet, lReplaced := .T.
+   LOCAL oHrb, cCodePP, pCode, uRet, lReplaced := .T.   
    LOCAL cHBheaders1 := "~/harbour/include"
    LOCAL cHBheaders2 := "c:\harbour\include"
 
@@ -58,12 +60,13 @@ FUNCTION Execute( cCode, ... )
    AddPPRules()
    
 
-   WHILE lReplaced
-      lReplaced = ReplaceBlocks( @cCode, "{%", "%}" )
-      cCode = __pp_Process( hPP, cCode )      
-   END
+   //WHILE lReplaced
+   //   lReplaced = ReplaceBlocks( @cCode, "{%", "%}" )
+      ReplaceBlocks( @cCode, "{%", "%}" )
+      cCodePP := __pp_Process( hPP, cCode )      
+   //END
 
-   oHrb = HB_CompileFromBuf( cCode, .T., "-n", "-q2", "-I" + cHBheaders1, "-I" + cHBheaders2, ;
+   oHrb = HB_CompileFromBuf( cCodePP, .T., "-n", "-q2", "-I" + cHBheaders1, "-I" + cHBheaders2, ;
       "-I" + hb_GetEnv( "HB_INCLUDE" ), hb_GetEnv( "HB_USER_PRGFLAGS" ) )
 
    IF ! Empty( oHrb )

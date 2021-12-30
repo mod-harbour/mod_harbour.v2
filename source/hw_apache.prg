@@ -11,11 +11,14 @@
 
 #include "hbthread.ch"
 #include "hbclass.ch"
+#include "hbhrb.ch"
+#include "hw_apache.ch"
 
 #define CRLF hb_OsNewLine()
 
 THREAD STATIC request_rec
 THREAD STATIC _cBuffer_Out 	:= ''
+THREAD STATIC _hHrbs 		
 
 
 FUNCTION Main()
@@ -31,8 +34,15 @@ FUNCTION HW_Thread( r )
    LOCAL cFileName
    LOCAL pThreadWait
    LOCAL oHrb
+   
+   //	Init thread statics vars
+   
+		request_rec 	:= r			//	Request from Apache
+		_cBuffer_Out 	:= ''			//	Buffer for text out
+		_hHrbs 			:= {=>}			//	Internal hash of loaded hrbs
+   
+   //	------------------------
 
-   request_rec := r
 
    ErrorBlock( {| oError | GetErrorInfo( oError ), Break( oError ) } )
 
@@ -65,8 +75,19 @@ FUNCTION HW_Thread( r )
    while( hb_threadQuitRequest( pThreadWait ) )
       hb_idleSleep( 0.01 )
    ENDDO   
+
+	//	Output of buffered text
    
-   AP_RPuts_Out( _cBuffer_Out )
+		AP_RPuts_Out( _cBuffer_Out )      
+   
+   //	Unload hrbs loaded. 
+   //	Pendiente de comprobar -> Con el flag que usamos para cargar el hrb 
+   //	HB_HRB_BIND_DEFAULT, se habria de tracear si es necesario descargar 
+   //	el modulo hrb cargado, porque al morir la thread static , el recolector 
+   //	se encargaria teoricamente tambien de descargar el hrb que esta en 
+   //	memoria. De momento no molesta...
+   
+		HW_LoadHrb_Clear()
 
 RETURN
 
@@ -104,10 +125,78 @@ FUNCTION AP_RPUTS( ... )
       _cBuffer_Out += valtochar( aParams[ i ] ) + ' '
    NEXT
 
-   _cBuffer_Out += valtochar( aParams[ n ] )
-   
-_d( 'ap_rputs', _cBuffer_Out )   
+   _cBuffer_Out += valtochar( aParams[ n ] )   
 
 RETURN
+
+// ----------------------------------------------------------------//
+/*
+#define HB_HRB_BIND_DEFAULT      0x0    do not overwrite any functions, ignore
+                                          public HRB functions if functions with
+                                          the same names already exist in HVM 
+
+#define HB_HRB_BIND_LOCAL        0x1    do not overwrite any functions
+                                          but keep local references, so
+                                          if module has public function FOO and
+                                          this function exists also in HVM
+                                          then the function in HRB is converted
+                                          to STATIC one 
+
+#define HB_HRB_BIND_OVERLOAD     0x2    overload all existing public functions 
+
+#define HB_HRB_BIND_FORCELOCAL   0x3    convert all public functions to STATIC ones 
+
+#define HB_HRB_BIND_MODEMASK     0x3    HB_HRB_BIND_* mode mask 
+
+#define HB_HRB_BIND_LAZY         0x4    lazy binding with external public
+                                          functions allows to load .hrb files
+                                          with unresolved or cross function
+                                          references 
+
+*/
+
+/* 	Dentro el paradigma del server multihilo, el objetivo es cargar los hrbs dentro
+	del propio hilo, y que al final del proceso de descarguen de la tabla de simbolos.
+	Hemos de tener en cuenta que puede haber mas de 1 hilo que use el mismo hrb, por 
+	lo que si descarga un hrb un hilo que lo haya ejecutado, no afecte a otro que lo
+	tenga en uso.
+*/
+
+FUNCTION HW_LoadHrb( cHrbFile_or_oHRB )
+
+    local lResult 	:= .F.   
+    local cType 	:= ValType( cHrbFile_or_oHRB )   
+
+	do case
+	
+		case cType == 'C'
+		
+			if File( hb_GetEnv( "PRGPATH" ) + "/" + cHrbFile_or_oHRB )
+		
+				if ! HB_HHasKey( _hHrbs, cHrbFile_or_oHRB )
+					_hHrbs[ cHrbFile_or_oHRB ] := hb_HrbLoad( HB_HRB_BIND_DEFAULT, hb_GetEnv( "PRGPATH" ) + "/" + cHrbFile_or_oHRB ) 				
+					
+_d( HB_HRBGETFUNLIST( _hHrbs[ cHrbFile_or_oHRB ] ) )					
+					
+				endif 				
+		
+			endif
+			
+		case cType == 'P'
+
+				_hHrbs[ cHrbFile_or_oHRB ] := hb_HrbLoad( HB_HRB_BIND_DEFAULT, hb_GetEnv( "PRGPATH" ) + "/" + cHrbFile_or_oHRB ) 
+		
+	endcase 
+	
+retu ''
+
+FUNCTION HW_LoadHrb_Clear()
+
+	for n = 1 to len( _hHrbs )
+		aPair := HB_HPairAt( _hHrbs, n )		
+		hb_hrbUnLoad( aPair[2] )			
+	next 
+
+retu nil 
 
 // ----------------------------------------------------------------//
