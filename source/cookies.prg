@@ -7,7 +7,7 @@
 
 //----------------------------------------------------------------//
 
-function GetCookies()
+function GetCookies( cKey )
 
    local cCookies := AP_GetEnv( "HTTP_COOKIE" )
    local aCookies := hb_aTokens( cCookies, ";" )
@@ -25,7 +25,10 @@ function GetCookies()
                SubStr( cCookie, At( "=", cCookie ) + 1 ) )
    next   
    
- return hCookies
+   hb_HCaseMatch( hCookies, .f. )
+   
+
+return if( valtype( cKey ) == 'C', HB_HGetDef( hCookies, cKey, '' ), hCookies )
 
 //----------------------------------------------------------------//
 

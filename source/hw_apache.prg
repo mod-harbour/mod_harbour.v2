@@ -62,7 +62,7 @@ FUNCTION HW_Thread( r )
             SubStr( cFileName, 1, RAt( "/", cFileName ) + RAt( "\", cFileName ) - 1 ) )
          cCode := MemoRead( cFileName )
 
-         Execute( cCode, AP_Args() ) // HW_Execute( cCode )
+        Execute( cCode, AP_Args() ) // HW_Execute( cCode )
 
       ENDIF
 
@@ -72,9 +72,11 @@ FUNCTION HW_Thread( r )
 
    ENDIF
 
+ 
    while( hb_threadQuitRequest( pThreadWait ) )
       hb_idleSleep( 0.01 )
    ENDDO   
+   
 
 	//	Output of buffered text
    
@@ -101,11 +103,12 @@ RETURN request_rec
 
 FUNCTION HW_RequestMaxTime( pThread, nTime )
 
-   hb_idleSleep( nTime )
+   hb_idleSleep( nTime )      
 
    while( hb_threadQuitRequest( pThread ) )
       hb_idleSleep( 0.01 )
    ENDDO
+
 
 RETURN
 
@@ -191,6 +194,8 @@ _d( HB_HRBGETFUNLIST( _hHrbs[ cHrbFile_or_oHRB ] ) )
 retu ''
 
 FUNCTION HW_LoadHrb_Clear()
+
+	local n 
 
 	for n = 1 to len( _hHrbs )
 		aPair := HB_HPairAt( _hHrbs, n )		
