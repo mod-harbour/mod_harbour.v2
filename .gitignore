@@ -1,0 +1,4 @@
+output/win64/*
+
+# exception to the rule
+!output/win64/.gitkeep 
