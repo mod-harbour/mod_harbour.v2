@@ -1,6 +1,7 @@
 function main()
 	
-	?? 'Version: ' , ModVersion()
-	?  'Build date: ' , ModBuildDate()
+	?? 'Mod name: ' 	, ModName()
+	?  'Version: '  	, ModVersion()
+	?  'Build date: ' 	, ModBuildDate()
 	
 retu nil 

@@ -21,7 +21,7 @@ function main()
 
     			<div class="d-flex">
 				
-				<form action="postpairs.prg" method='POST'>
+				<form action="../postpairs.prg" method='POST'>
 					<div class="mb-3">
 					  <label for="exampleFormControlInput1" class="form-label">User name</label>
 					  <input type="text" class="form-control" id="exampleFormControlInput1" name="username" placeholder="Enter user name...">

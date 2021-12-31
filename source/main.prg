@@ -4,6 +4,7 @@
 ** MIT license
 */
 
+#define MODNAME			'mod_harbour.V2'
 #define MODVERSION		'2.0a'
 
 #ifdef __PLATFORM__WINDOWS
@@ -46,6 +47,12 @@
 
 
 #include "hw_apache.ch"
+
+// ----------------------------------------------------------------//
+
+function ModName()
+
+retu MODNAME
 
 // ----------------------------------------------------------------//
 

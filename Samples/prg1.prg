@@ -1,8 +1,12 @@
 function Main()
 
-	BLOCKS 
+	TEMPLATE
 	
-		Into block	
+		Into block
+
+		<br>
+		
+		Date today: 
 	
 		<?prg 
 			local cDate := dtoc( date() )
@@ -16,6 +20,6 @@ function Main()
 	
 	ENDTEXT 
 	
-	? 'Hola'
+	? 'Bye'
 
 return nil 
