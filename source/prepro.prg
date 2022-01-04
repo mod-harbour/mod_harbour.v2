@@ -61,27 +61,20 @@ FUNCTION Execute( cCode, ... )
 		case "Linux" $ OS()		; cHBHeader := "~/harbour/include"
 	endcase   	
 
-   ErrorBlock( {| oError | GetErrorInfo( oError, @cCode ), Break( oError ) } )
+    ErrorBlock( {| oError | MH_ErrorInfo( oError, @cCode ), Break( oError ) } )
 
-   AddPPRules()
+    AddPPRules()      
+   
+    ReplaceBlocks( @cCode, "{%", "%}" )
+    cCodePP := __pp_Process( hPP, cCode )      
    
 
-   //WHILE lReplaced
-   //   lReplaced = ReplaceBlocks( @cCode, "{%", "%}" )
-      ReplaceBlocks( @cCode, "{%", "%}" )
-      cCodePP := __pp_Process( hPP, cCode )      
-   //END
-   
-   _d( cCodePP )
-
-
-   oHrb = HB_CompileFromBuf( cCodePP, .T., "-n", "-q2", "-I" + cHBheader, ;
+    oHrb = HB_CompileFromBuf( cCodePP, .T., "-n", "-q2", "-I" + cHBheader, ;
       "-I" + hb_GetEnv( "HB_INCLUDE" ), hb_GetEnv( "HB_USER_PRGFLAGS" ) )
 
-   IF ! Empty( oHrb )
+    IF ! Empty( oHrb )
       uRet := hb_hrbDo( hb_hrbLoad( HB_HRB_BIND_OVERLOAD, oHrb ), ... )
-
-   ENDIF
+    ENDIF
 
 RETURN uRet
 

@@ -8,6 +8,6 @@ retu nil
 
 function MyError( oError )
 
-	? 'Description:'//, oError:description 
+	? oError		
 	
 retu nil 

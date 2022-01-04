@@ -219,10 +219,46 @@ FUNCTION MH_LoadFile( cFile )
 		Aadd( _aFiles, cFile )	
 		return hb_MemoRead( cPath_File )
 		
-	//else	
-	//	ResetTrace()
-	//	modDoError( "LoadFile() file not found: " + cPath_File  )
+	else		
+		MH_DoError( "MH_LoadFile() file not found: " + cPath_File  )
     endif
 
 
 retu ''
+
+// ----------------------------------------------------------------//
+		 
+function MH_ErrorInfo( oError, cCode )
+
+	hb_default( @cCode, "" )
+
+	if valtype( _bError ) == 'B'
+	
+		_cBuffer_Out := ''	
+		Eval( _bError, oError, cCode )		
+		AP_RPuts_Out( _cBuffer_Out )
+		
+	else 	
+		GetErrorInfo( oError, @cCode )	
+	endif 
+
+retu nil
+
+function MH_ErrorBlock( bBlockError ) 	
+	_bError := bBlockError 
+retu nil 
+
+//----------------------------------------------------------------//
+
+function MH_DoError( cDescription, cSubsystem ) 
+
+	local oError := ErrorNew()
+	
+	hb_default( @cSubsystem, "modHarbour.v2" )
+	
+	oError:Subsystem   := cSubsystem
+	oError:Severity    := 2	//	ES_ERROR
+	oError:Description := cDescription
+	Eval( ErrorBlock(), oError)	
+
+return nil
