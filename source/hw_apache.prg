@@ -20,6 +20,7 @@ THREAD STATIC request_rec
 THREAD STATIC _cBuffer_Out 	:= ''
 THREAD STATIC _hHrbs 		
 THREAD STATIC _aFiles 		
+THREAD STATIC _bError 		
 
 
 FUNCTION Main()
@@ -41,7 +42,7 @@ FUNCTION HW_Thread( r )
 		request_rec 	:= r			//	Request from Apache
 		_cBuffer_Out 	:= ''			//	Buffer for text out
 		_hHrbs 			:= {=>}			//	Internal hash of loaded hrbs
-		_aFiles			:= {}			//	Internal array of loaded files
+		_aFiles			:= {}			//	Internal array of loaded name files		
    
    //	------------------------
 
@@ -84,7 +85,7 @@ FUNCTION HW_Thread( r )
    
 		AP_RPuts_Out( _cBuffer_Out )      
    
-   //	Unload hrbs loaded. 
+    //	Unload hrbs loaded. 
    
 		MH_LoadHrb_Clear()
 

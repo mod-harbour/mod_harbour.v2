@@ -1,7 +1,5 @@
-//	{% HW_LoadHrb( 'module_a.hrb' ) %}
-//	{% HW_LoadHrb( 'module_a.hrb' ) %}
-//	{% HW_LoadHrb( 'module_a.hrb' ) %}
-//	{% HW_LoadHrb( 'module_b.hrb' ) %}
+//	{% MH_LoadHrb( 'module_a.hrb' ) %}
+//	{% MH_LoadHrb( 'module_b.hrb' ) %}
 
 function main()
 

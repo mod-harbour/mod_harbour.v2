@@ -52,9 +52,14 @@ RETURN hb_hrbDo( oHrb, cArgs )
 
 FUNCTION Execute( cCode, ... )
 
-   LOCAL oHrb, cCodePP, pCode, uRet, lReplaced := .T.   
-   LOCAL cHBheaders1 := "~/harbour/include"
-   LOCAL cHBheaders2 := "c:\harbour\include"
+   LOCAL oHrb, cCodePP, pCode, uRet, lReplaced := .T.         
+   LOCAL cOs		 := OS()
+   LOCAL cHBHeader	 := ''
+   
+	do case
+		case "Windows" $ OS()	; cHBHeader := "c:\harbour\include"
+		case "Linux" $ OS()		; cHBHeader := "~/harbour/include"
+	endcase   	
 
    ErrorBlock( {| oError | GetErrorInfo( oError, @cCode ), Break( oError ) } )
 
@@ -69,7 +74,8 @@ FUNCTION Execute( cCode, ... )
    
    _d( cCodePP )
 
-   oHrb = HB_CompileFromBuf( cCodePP, .T., "-n", "-q2", "-I" + cHBheaders1, "-I" + cHBheaders2, ;
+
+   oHrb = HB_CompileFromBuf( cCodePP, .T., "-n", "-q2", "-I" + cHBheader, ;
       "-I" + hb_GetEnv( "HB_INCLUDE" ), hb_GetEnv( "HB_USER_PRGFLAGS" ) )
 
    IF ! Empty( oHrb )
