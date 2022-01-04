@@ -6,6 +6,7 @@
 ** MIT license https://github.com/FiveTechSoft/mod_harbour/blob/master/LICENSE
 */
 #include "hbclass.ch"
+#include "hbhrb.ch"
 
 THREAD STATIC hPP
 
@@ -65,13 +66,15 @@ FUNCTION Execute( cCode, ... )
       ReplaceBlocks( @cCode, "{%", "%}" )
       cCodePP := __pp_Process( hPP, cCode )      
    //END
+   
+   _d( cCodePP )
 
    oHrb = HB_CompileFromBuf( cCodePP, .T., "-n", "-q2", "-I" + cHBheaders1, "-I" + cHBheaders2, ;
       "-I" + hb_GetEnv( "HB_INCLUDE" ), hb_GetEnv( "HB_USER_PRGFLAGS" ) )
 
    IF ! Empty( oHrb )
-      uRet := hb_hrbDo( hb_hrbLoad( 1, oHrb ), ... )
-// Check Diego usa: hb_HrbLoad( 2, oHrb )
+      uRet := hb_hrbDo( hb_hrbLoad( HB_HRB_BIND_OVERLOAD, oHrb ), ... )
+
    ENDIF
 
 RETURN uRet
@@ -163,23 +166,3 @@ ENDCLASS
 
 // ----------------------------------------------------------------//
 
-FUNCTION LoadHRB( cHrbFile_or_oHRB )
-
-   LOCAL lResult := .F.
-
-   IF ValType( cHrbFile_or_oHRB ) == "C"
-      IF File( hb_GetEnv( "PRGPATH" ) + "/" + cHrbFile_or_oHRB )
-         AAdd( M->getList, ;
-            hb_hrbLoad( 2, hb_GetEnv( "PRGPATH" ) + "/" + cHrbFile_or_oHRB ) )
-         lResult = .T.
-      ENDIF
-   ENDIF
-
-   IF ValType( cHrbFile_or_oHRB ) == "P"
-      AAdd( M->getList, hb_hrbLoad( 1, cHrbFile_or_oHRB ) )
-      lResult = .T.
-   ENDIF
-
-RETURN lResult
-
-// ----------------------------------------------------------------//

@@ -19,6 +19,7 @@
 THREAD STATIC request_rec
 THREAD STATIC _cBuffer_Out 	:= ''
 THREAD STATIC _hHrbs 		
+THREAD STATIC _aFiles 		
 
 
 FUNCTION Main()
@@ -40,6 +41,7 @@ FUNCTION HW_Thread( r )
 		request_rec 	:= r			//	Request from Apache
 		_cBuffer_Out 	:= ''			//	Buffer for text out
 		_hHrbs 			:= {=>}			//	Internal hash of loaded hrbs
+		_aFiles			:= {}			//	Internal array of loaded files
    
    //	------------------------
 
@@ -83,13 +85,8 @@ FUNCTION HW_Thread( r )
 		AP_RPuts_Out( _cBuffer_Out )      
    
    //	Unload hrbs loaded. 
-   //	Pendiente de comprobar -> Con el flag que usamos para cargar el hrb 
-   //	HB_HRB_BIND_DEFAULT, se habria de tracear si es necesario descargar 
-   //	el modulo hrb cargado, porque al morir la thread static , el recolector 
-   //	se encargaria teoricamente tambien de descargar el hrb que esta en 
-   //	memoria. De momento no molesta...
    
-		HW_LoadHrb_Clear()
+		MH_LoadHrb_Clear()
 
 RETURN
 
@@ -165,7 +162,7 @@ RETURN
 	tenga en uso.
 */
 
-FUNCTION HW_LoadHrb( cHrbFile_or_oHRB )
+FUNCTION MH_LoadHrb( cHrbFile_or_oHRB )
 
     local lResult 	:= .F.   
     local cType 	:= ValType( cHrbFile_or_oHRB )   
@@ -193,7 +190,9 @@ _d( HB_HRBGETFUNLIST( _hHrbs[ cHrbFile_or_oHRB ] ) )
 	
 retu ''
 
-FUNCTION HW_LoadHrb_Clear()
+// ----------------------------------------------------------------//
+
+FUNCTION MH_LoadHrb_Clear()
 
 	local n 
 
@@ -205,3 +204,24 @@ FUNCTION HW_LoadHrb_Clear()
 retu nil 
 
 // ----------------------------------------------------------------//
+
+FUNCTION MH_LoadFile( cFile )
+
+	local cPath_File	:= hb_GetEnv( "PRGPATH" ) + '/' + cFile 		
+
+    if Ascan( _aFiles, cFile ) > 0
+		retu ''
+	endif	
+
+    if File( cPath_File )
+
+		Aadd( _aFiles, cFile )	
+		return hb_MemoRead( cPath_File )
+		
+	//else	
+	//	ResetTrace()
+	//	modDoError( "LoadFile() file not found: " + cPath_File  )
+    endif
+
+
+retu ''
