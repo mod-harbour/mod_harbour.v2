@@ -188,9 +188,9 @@ function GetErrorInfo( oError, cCode )
          cInfo += StrZero( n, 4 ) + If( n == nLine, " =>", ": " ) + ;
                   hb_HtmlEncode( aLines[ n ] ) + CRLF
       next
-   endif   
-   
-   AP_RPUTS_OUT( cInfo )      
+   endif  
+
+	?? cInfo  
 
 return nil
 

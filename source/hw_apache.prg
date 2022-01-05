@@ -47,7 +47,8 @@ FUNCTION HW_Thread( r )
    //	------------------------
 
 
-   ErrorBlock( {| oError | GetErrorInfo( oError ), Break( oError ) } )
+   //ErrorBlock( {| oError | GetErrorInfo( oError ), Break( oError ) } )
+   ErrorBlock( {| oError | MH_ErrorInfo( oError ), Break( oError ) } )
 
    pThreadWait := hb_threadStart( @HW_RequestMaxTime(), hb_threadSelf(), 15 ) // 15 Sec max
 
@@ -166,20 +167,28 @@ RETURN
 FUNCTION MH_LoadHrb( cHrbFile_or_oHRB )
 
     local lResult 	:= .F.   
-    local cType 	:= ValType( cHrbFile_or_oHRB )   
+    local cType 	:= ValType( cHrbFile_or_oHRB )  
+	local cFile		
 
 	do case
 	
 		case cType == 'C'
 		
-			if File( hb_GetEnv( "PRGPATH" ) + "/" + cHrbFile_or_oHRB )
+			cFile := hb_GetEnv( "PRGPATH" ) + "/" + cHrbFile_or_oHRB
+		
+			if File( cFile )
 		
 				if ! HB_HHasKey( _hHrbs, cHrbFile_or_oHRB )
-					_hHrbs[ cHrbFile_or_oHRB ] := hb_HrbLoad( HB_HRB_BIND_DEFAULT, hb_GetEnv( "PRGPATH" ) + "/" + cHrbFile_or_oHRB ) 				
+					_hHrbs[ cHrbFile_or_oHRB ] := hb_HrbLoad( HB_HRB_BIND_DEFAULT, cFile ) 				
+
+//	Trace					
+_d( cHrbFile_or_oHRB, HB_HRBGETFUNLIST( _hHrbs[ cHrbFile_or_oHRB ] ) )					
 					
-_d( HB_HRBGETFUNLIST( _hHrbs[ cHrbFile_or_oHRB ] ) )					
-					
-				endif 				
+				endif 	
+
+			else 
+			
+				MH_DoError( "MH_LoadHrb() file not found: " + cFile  )
 		
 			endif
 			
@@ -200,6 +209,21 @@ FUNCTION MH_LoadHrb_Clear()
 	for n = 1 to len( _hHrbs )
 		aPair := HB_HPairAt( _hHrbs, n )		
 		hb_hrbUnLoad( aPair[2] )			
+	next 
+	
+	_hHrbs := {}
+
+retu nil 
+
+// ----------------------------------------------------------------//
+
+FUNCTION MH_LoadHrb_Show()
+
+	local n 
+
+	for n = 1 to len( _hHrbs )
+		aPair := HB_HPairAt( _hHrbs, n )		
+		_d( aPair[1], HB_HRBGETFUNLIST( aPair[2] ) )			
 	next 
 
 retu nil 
@@ -235,12 +259,23 @@ function MH_ErrorInfo( oError, cCode )
 	if valtype( _bError ) == 'B'
 	
 		_cBuffer_Out := ''	
-		Eval( _bError, oError, cCode )		
-		AP_RPuts_Out( _cBuffer_Out )
+		Eval( _bError, oError, cCode )				
 		
 	else 	
+	
 		GetErrorInfo( oError, @cCode )	
+	
 	endif 
+	
+	//	Output of buffered text
+   
+		AP_RPuts_Out( _cBuffer_Out )  	
+	
+    //	Unload hrbs loaded. 
+	
+		MH_LoadHrb_Clear()	
+
+	//	EXIT.----------------
 
 retu nil
 
