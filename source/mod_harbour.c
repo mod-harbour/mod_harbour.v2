@@ -265,8 +265,6 @@ char * GetErrorMessage( DWORD dwLastError )
 
 static int harbourV2_handler( request_rec * r ) {
 
-   int iResult = OK;
-
    if( strcmp( r->handler, "harbour" ) )
      return DECLINED;
 
