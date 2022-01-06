@@ -102,7 +102,7 @@ FUNCTION HW_RequestMaxTime( pThread, nTime )
       hb_idleSleep( 0.01 )
    ENDDO
 
-//   HW_ServerBusy( request_rec )
+   HW_EXITSTATUS( 408 )
 
    while( hb_threadQuitRequest( pThread ) )
       hb_idleSleep( 0.01 )
