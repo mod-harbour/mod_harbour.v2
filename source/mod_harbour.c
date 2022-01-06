@@ -265,8 +265,6 @@ char * GetErrorMessage( DWORD dwLastError )
 
 static int harbourV2_handler( request_rec * r ) {
 
-   HB_THREAD_HANDLE hThread;
-   PHB_ITEM pResult = NULL;
    int iResult = OK;
 
    if( strcmp( r->handler, "harbour" ) )
