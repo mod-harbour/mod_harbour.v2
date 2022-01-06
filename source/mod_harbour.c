@@ -74,19 +74,6 @@ void hw_EndMutex()
 
 //----------------------------------------------------------------//
 
-static HB_THREAD_STARTFUNC( hb_apache ) {
-
-   hb_vmThreadInit( NULL );
-   hb_vmPushDynSym( hb_dynsymFind( "HW_THREAD" ) );
-   hb_vmPushNil(); 
-   hb_vmPushPointer( Cargo );
-   hb_vmFunction( 1 );
-   hb_vmThreadQuit();
-   HB_THREAD_END
-}
-
-//----------------------------------------------------------------//
-
 request_rec * GetRequestRec( void )
 {
    hb_vmPushSymbol( hb_dynsymGetSymbol( "GETREQUESTREC" ) );
