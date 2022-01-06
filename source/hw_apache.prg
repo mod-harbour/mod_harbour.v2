@@ -17,40 +17,40 @@
 #define CRLF hb_OsNewLine()
 
 THREAD STATIC request_rec
-THREAD STATIC _cBuffer_Out 	:= ''
-THREAD STATIC _hHrbs 		
-THREAD STATIC _aFiles 		
-THREAD STATIC _bError 		
-
+THREAD STATIC _cBuffer_Out  := ''
+THREAD STATIC _hHrbs
+THREAD STATIC _aFiles
+THREAD STATIC _bError
+THREAD STATIC _t_hTimer
 
 FUNCTION Main()
 
 
-  
+
 RETURN NIL
 
-//	------------------------------------------------------------------	//
+// ------------------------------------------------------------------ //
 
 FUNCTION HW_Thread( r )
 
    LOCAL cFileName
    LOCAL pThreadWait
    LOCAL oHrb
-   
-   //	Init thread statics vars
-   
-		request_rec 	:= r			//	Request from Apache
-		_cBuffer_Out 	:= ''			//	Buffer for text out
-		_hHrbs 			:= {=>}			//	Internal hash of loaded hrbs
-		_aFiles			:= {}			//	Internal array of loaded name files		
-   
-   //	------------------------
+
+   // Init thread statics vars
+
+   request_rec  := r   // Request from Apache
+   _cBuffer_Out  := ''   // Buffer for text out
+   _hHrbs    := { => }   // Internal hash of loaded hrbs
+   _aFiles   := {}   // Internal array of loaded name files
+
+   // ------------------------
 
 
-   //ErrorBlock( {| oError | GetErrorInfo( oError ), Break( oError ) } )
+   // ErrorBlock( {| oError | GetErrorInfo( oError ), Break( oError ) } )
    ErrorBlock( {| oError | MH_ErrorInfo( oError ), Break( oError ) } )
 
-   pThreadWait := hb_threadStart( @HW_RequestMaxTime(), hb_threadSelf(), 15 ) // 15 Sec max
+   _t_hTimer = hb_idleAdd( {|| HW_RequestMaxTime( hb_threadSelf(), 15 ) }  )
 
    cFileName = AP_FileName()  // HW_FileName()
 
@@ -66,7 +66,7 @@ FUNCTION HW_Thread( r )
             SubStr( cFileName, 1, RAt( "/", cFileName ) + RAt( "\", cFileName ) - 1 ) )
          cCode := MemoRead( cFileName )
 
-        Execute( cCode, AP_Args() ) // HW_Execute( cCode )
+         Execute( cCode, AP_Args() ) // HW_Execute( cCode )
 
       ENDIF
 
@@ -76,21 +76,15 @@ FUNCTION HW_Thread( r )
 
    ENDIF
 
- 
-   while( hb_threadQuitRequest( pThreadWait ) )
-      hb_idleSleep( 0.01 )
-   ENDDO   
-   
+// Output of buffered text
 
-	//	Output of buffered text
-   
-		AP_RPuts_Out( _cBuffer_Out )      
-   
-    //	Unload hrbs loaded. 
-   
-		MH_LoadHrb_Clear()
+   AP_RPuts_Out( _cBuffer_Out )
 
-RETURN
+   // Unload hrbs loaded.
+
+   MH_LoadHrb_Clear()
+
+RETURN 1
 
 // ----------------------------------------------------------------//
 
@@ -102,32 +96,37 @@ RETURN request_rec
 
 FUNCTION HW_RequestMaxTime( pThread, nTime )
 
-   hb_idleSleep( nTime )      
+   sec := Seconds()
+
+   DO WHILE ( Seconds() - sec < nTime )
+      hb_idleSleep( 0.01 )
+   ENDDO
+
+//   HW_ServerBusy( request_rec )
 
    while( hb_threadQuitRequest( pThread ) )
       hb_idleSleep( 0.01 )
    ENDDO
 
-
-RETURN
+RETURN 
 
 
 // ----------------------------------------------------------------//
 
 FUNCTION AP_RPUTS( ... )
-  
+
    LOCAL aParams := hb_AParams()
-   LOCAL n 		 := Len( aParams )
-   
+   LOCAL n    := Len( aParams )
+
    IF n == 0
-	  RETURN NIL
+      RETURN NIL
    ENDIF
 
-   FOR i = 1 TO n - 1 
+   FOR i = 1 TO n - 1
       _cBuffer_Out += valtochar( aParams[ i ] ) + ' '
    NEXT
 
-   _cBuffer_Out += valtochar( aParams[ n ] )   
+   _cBuffer_Out += valtochar( aParams[ n ] )
 
 RETURN
 
@@ -135,165 +134,171 @@ RETURN
 /*
 #define HB_HRB_BIND_DEFAULT      0x0    do not overwrite any functions, ignore
                                           public HRB functions if functions with
-                                          the same names already exist in HVM 
+                                          the same names already exist in HVM
 
 #define HB_HRB_BIND_LOCAL        0x1    do not overwrite any functions
                                           but keep local references, so
                                           if module has public function FOO and
                                           this function exists also in HVM
                                           then the function in HRB is converted
-                                          to STATIC one 
+                                          to STATIC one
 
-#define HB_HRB_BIND_OVERLOAD     0x2    overload all existing public functions 
+#define HB_HRB_BIND_OVERLOAD     0x2    overload all existing public functions
 
-#define HB_HRB_BIND_FORCELOCAL   0x3    convert all public functions to STATIC ones 
+#define HB_HRB_BIND_FORCELOCAL   0x3    convert all public functions to STATIC ones
 
-#define HB_HRB_BIND_MODEMASK     0x3    HB_HRB_BIND_* mode mask 
+#define HB_HRB_BIND_MODEMASK     0x3    HB_HRB_BIND_* mode mask
 
 #define HB_HRB_BIND_LAZY         0x4    lazy binding with external public
                                           functions allows to load .hrb files
                                           with unresolved or cross function
-                                          references 
+                                          references
 
 */
 
-/* 	Dentro el paradigma del server multihilo, el objetivo es cargar los hrbs dentro
-	del propio hilo, y que al final del proceso de descarguen de la tabla de simbolos.
-	Hemos de tener en cuenta que puede haber mas de 1 hilo que use el mismo hrb, por 
-	lo que si descarga un hrb un hilo que lo haya ejecutado, no afecte a otro que lo
-	tenga en uso.
+/*  Dentro el paradigma del server multihilo, el objetivo es cargar los hrbs dentro
+ del propio hilo, y que al final del proceso de descarguen de la tabla de simbolos.
+ Hemos de tener en cuenta que puede haber mas de 1 hilo que use el mismo hrb, por
+ lo que si descarga un hrb un hilo que lo haya ejecutado, no afecte a otro que lo
+ tenga en uso.
 */
 
 FUNCTION MH_LoadHrb( cHrbFile_or_oHRB )
 
-    local lResult 	:= .F.   
-    local cType 	:= ValType( cHrbFile_or_oHRB )  
-	local cFile		
+   LOCAL lResult  := .F.
+   LOCAL cType  := ValType( cHrbFile_or_oHRB )
+   LOCAL cFile
 
-	do case
-	
-		case cType == 'C'
-		
-			cFile := hb_GetEnv( "PRGPATH" ) + "/" + cHrbFile_or_oHRB
-		
-			if File( cFile )
-		
-				if ! HB_HHasKey( _hHrbs, cHrbFile_or_oHRB )
-					_hHrbs[ cHrbFile_or_oHRB ] := hb_HrbLoad( HB_HRB_BIND_DEFAULT, cFile ) 				
+   DO CASE
 
-//	Trace					
-_d( cHrbFile_or_oHRB, HB_HRBGETFUNLIST( _hHrbs[ cHrbFile_or_oHRB ] ) )					
-					
-				endif 	
+   CASE cType == 'C'
 
-			else 
-			
-				MH_DoError( "MH_LoadHrb() file not found: " + cFile  )
-		
-			endif
-			
-		case cType == 'P'
+      cFile := hb_GetEnv( "PRGPATH" ) + "/" + cHrbFile_or_oHRB
 
-				_hHrbs[ cHrbFile_or_oHRB ] := hb_HrbLoad( HB_HRB_BIND_DEFAULT, hb_GetEnv( "PRGPATH" ) + "/" + cHrbFile_or_oHRB ) 
-		
-	endcase 
-	
-retu ''
+      IF File( cFile )
+
+         WHILE !hb_mutexLock( HW_Mutex() )
+         ENDDO
+         IF ! hb_HHasKey( _hHrbs, cHrbFile_or_oHRB )
+            _hHrbs[ cHrbFile_or_oHRB ] := hb_hrbLoad( 2, cFile )
+
+// Trace
+            _d( cHrbFile_or_oHRB, hb_hrbGetFunList( _hHrbs[ cHrbFile_or_oHRB ] ) )
+
+         ENDIF
+         hb_mutexUnlock( HW_Mutex() )
+      ELSE
+
+         MH_DoError( "MH_LoadHrb() file not found: " + cFile  )
+
+      ENDIF
+
+   CASE cType == 'P'
+
+      _hHrbs[ cHrbFile_or_oHRB ] := hb_hrbLoad( HB_HRB_BIND_DEFAULT, hb_GetEnv( "PRGPATH" ) + "/" + cHrbFile_or_oHRB )
+
+   ENDCASE
+
+   RETU ''
 
 // ----------------------------------------------------------------//
 
 FUNCTION MH_LoadHrb_Clear()
 
-	local n 
+   LOCAL n
 
-	for n = 1 to len( _hHrbs )
-		aPair := HB_HPairAt( _hHrbs, n )		
-		hb_hrbUnLoad( aPair[2] )			
-	next 
-	
-	_hHrbs := {}
+   WHILE !hb_mutexLock( HW_Mutex() )
+   ENDDO
 
-retu nil 
+   FOR n = 1 TO Len( _hHrbs )
+      aPair := hb_HPairAt( _hHrbs, n )
+      hb_hrbUnload( aPair[ 2 ] )
+   NEXT
+   _hHrbs := {}
+   hb_mutexUnlock( HW_Mutex() )
+
+   RETU NIL
 
 // ----------------------------------------------------------------//
 
 FUNCTION MH_LoadHrb_Show()
 
-	local n 
+   LOCAL n
 
-	for n = 1 to len( _hHrbs )
-		aPair := HB_HPairAt( _hHrbs, n )		
-		_d( aPair[1], HB_HRBGETFUNLIST( aPair[2] ) )			
-	next 
+   FOR n = 1 TO Len( _hHrbs )
+      aPair := hb_HPairAt( _hHrbs, n )
+      _d( aPair[ 1 ], hb_hrbGetFunList( aPair[ 2 ] ) )
+   NEXT
 
-retu nil 
+   RETU NIL
 
 // ----------------------------------------------------------------//
 
 FUNCTION MH_LoadFile( cFile )
 
-	local cPath_File	:= hb_GetEnv( "PRGPATH" ) + '/' + cFile 		
+   LOCAL cPath_File := hb_GetEnv( "PRGPATH" ) + '/' + cFile
 
-    if Ascan( _aFiles, cFile ) > 0
-		retu ''
-	endif	
+   IF AScan( _aFiles, cFile ) > 0
+      RETU ''
+   ENDIF
 
-    if File( cPath_File )
+   IF File( cPath_File )
 
-		Aadd( _aFiles, cFile )	
-		return hb_MemoRead( cPath_File )
-		
-	else		
-		MH_DoError( "MH_LoadFile() file not found: " + cPath_File  )
-    endif
+      AAdd( _aFiles, cFile )
+      RETURN hb_MemoRead( cPath_File )
+
+   ELSE
+      MH_DoError( "MH_LoadFile() file not found: " + cPath_File  )
+   ENDIF
 
 
-retu ''
+   RETU ''
 
 // ----------------------------------------------------------------//
-		 
-function MH_ErrorInfo( oError, cCode )
 
-	hb_default( @cCode, "" )
+FUNCTION MH_ErrorInfo( oError, cCode )
 
-	if valtype( _bError ) == 'B'
-	
-		_cBuffer_Out := ''	
-		Eval( _bError, oError, cCode )				
-		
-	else 	
-	
-		GetErrorInfo( oError, @cCode )	
-	
-	endif 
-	
-	//	Output of buffered text
-   
-		AP_RPuts_Out( _cBuffer_Out )  	
-	
-    //	Unload hrbs loaded. 
-	
-		MH_LoadHrb_Clear()	
+   hb_default( @cCode, "" )
 
-	//	EXIT.----------------
+   IF ValType( _bError ) == 'B'
 
-retu nil
+      _cBuffer_Out := ''
+      Eval( _bError, oError, cCode )
 
-function MH_ErrorBlock( bBlockError ) 	
-	_bError := bBlockError 
-retu nil 
+   ELSE
 
-//----------------------------------------------------------------//
+      GetErrorInfo( oError, @cCode )
 
-function MH_DoError( cDescription, cSubsystem ) 
+   ENDIF
 
-	local oError := ErrorNew()
-	
-	hb_default( @cSubsystem, "modHarbour.v2" )
-	
-	oError:Subsystem   := cSubsystem
-	oError:Severity    := 2	//	ES_ERROR
-	oError:Description := cDescription
-	Eval( ErrorBlock(), oError)	
+// Output of buffered text
 
-return nil
+   AP_RPuts_Out( _cBuffer_Out )
+
+   // Unload hrbs loaded.
+
+   MH_LoadHrb_Clear()
+
+// EXIT.----------------
+
+   RETU NIL
+
+FUNCTION MH_ErrorBlock( bBlockError )
+
+   _bError := bBlockError
+   RETU NIL
+
+// ----------------------------------------------------------------//
+
+FUNCTION MH_DoError( cDescription, cSubsystem )
+
+   LOCAL oError := ErrorNew()
+
+   hb_default( @cSubsystem, "modHarbour.v2" )
+
+   oError:Subsystem   := cSubsystem
+   oError:Severity    := 2 // ES_ERROR
+   oError:Description := cDescription
+   Eval( ErrorBlock(), oError )
+
+RETURN NIL

@@ -82,7 +82,6 @@ static HB_THREAD_STARTFUNC( hb_apache ) {
    hb_vmPushPointer( Cargo );
    hb_vmFunction( 1 );
    hb_vmThreadQuit();
-
    HB_THREAD_END
 }
 
@@ -267,6 +266,8 @@ char * GetErrorMessage( DWORD dwLastError )
 static int harbourV2_handler( request_rec * r ) {
 
    HB_THREAD_HANDLE hThread;
+   PHB_ITEM pResult = NULL;
+   int iResult = OK;
 
    if( strcmp( r->handler, "harbour" ) )
      return DECLINED;
@@ -283,9 +284,12 @@ static int harbourV2_handler( request_rec * r ) {
    };
    hw_EndMutex();
 
-   HB_THREAD_ID th_id;
-   hThread = hb_threadCreate( &th_id, hb_apache, r );   
-   hb_threadJoin( hThread );
+   hb_vmThreadInit( NULL );
+   hb_vmPushDynSym( hb_dynsymFind( "HW_THREAD" ) );
+   hb_vmPushNil(); 
+   hb_vmPushPointer( r );
+   hb_vmFunction( 1 );
+   hb_vmThreadQuit();   
 
    return OK;
 

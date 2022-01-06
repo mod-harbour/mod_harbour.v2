@@ -1,4 +1,9 @@
 output/win64/*
-
+output/win32/*
+.hbmk
+.history
+go32.bat
 # exception to the rule
 !output/win64/.gitkeep 
+!output/win32/.gitkeep 
+

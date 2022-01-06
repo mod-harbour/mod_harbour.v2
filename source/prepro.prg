@@ -10,36 +10,36 @@
 
 THREAD STATIC hPP
 
-function AddPPRules()
+FUNCTION AddPPRules()
 
-   if hPP == nil
-      hPP = __pp_init()
-      __pp_path( hPP, "~/harbour/include" )
-      __pp_path( hPP, "c:\harbour\include" )
-      if ! Empty( hb_GetEnv( "HB_INCLUDE" ) )
-         __pp_path( hPP, hb_GetEnv( "HB_INCLUDE" ) )
-      endif 	 
-   endif
+   IF hPP == nil
+      hPP = __pp_Init()
+      __pp_Path( hPP, "~/harbour/include" )
+      __pp_Path( hPP, "c:\harbour\include" )
+      IF ! Empty( hb_GetEnv( "HB_INCLUDE" ) )
+         __pp_Path( hPP, hb_GetEnv( "HB_INCLUDE" ) )
+      ENDIF
+   ENDIF
 
-   __pp_addRule( hPP, "#xcommand ? [<explist,...>] => AP_RPUTS( '<br>' [,<explist>] )" )
-   __pp_addRule( hPP, "#xcommand ?? [<explist,...>] => AP_RPuts( [<explist>] )" )
-   __pp_addRule( hPP, "#define CRLF hb_OsNewLine()" )
-   __pp_addRule( hPP, "#xcommand TEXT <into:TO,INTO> <v> => #pragma __cstream|<v>:=%s" )
-   __pp_addRule( hPP, "#xcommand TEXT <into:TO,INTO> <v> ADDITIVE => #pragma __cstream|<v>+=%s" )
-   __pp_addRule( hPP, "#xcommand TEMPLATE [ USING <x> ] [ PARAMS [<v1>] [,<vn>] ] => " + ;
-                      '#pragma __cstream | AP_RPuts( InlinePrg( %s, [@<x>] [,<(v1)>][+","+<(vn)>] [, @<v1>][, @<vn>] ) )' )
-   __pp_addRule( hPP, "#xcommand BLOCKS [ PARAMS [<v1>] [,<vn>] ] => " + ;
-                      '#pragma __cstream | AP_RPuts( ReplaceBlocks( %s, "{{", "}}" [,<(v1)>][+","+<(vn)>] [, @<v1>][, @<vn>] ) )' ) 
-   __pp_addRule( hPP, "#xcommand BLOCKS TO <b> [ PARAMS [<v1>] [,<vn>] ] => " + ;
-                      '#pragma __cstream | <b>+=ReplaceBlocks( %s, "{{", "}}" [,<(v1)>][+","+<(vn)>] [, @<v1>][, @<vn>] )' )					  
-   __pp_addRule( hPP, "#command ENDTEMPLATE => #pragma __endtext" )
-   __pp_addRule( hPP, "#xcommand TRY  => BEGIN SEQUENCE WITH {| oErr | Break( oErr ) }" )
-   __pp_addRule( hPP, "#xcommand CATCH [<!oErr!>] => RECOVER [USING <oErr>] <-oErr->" )
-   __pp_addRule( hPP, "#xcommand FINALLY => ALWAYS" )
-   __pp_addRule( hPP, "#xcommand DEFAULT <v1> TO <x1> [, <vn> TO <xn> ] => ;" + ;
-                      "IF <v1> == NIL ; <v1> := <x1> ; END [; IF <vn> == NIL ; <vn> := <xn> ; END ]" )
-		      
-return nil
+   __pp_AddRule( hPP, "#xcommand ? [<explist,...>] => AP_RPUTS( '<br>' [,<explist>] )" )
+   __pp_AddRule( hPP, "#xcommand ?? [<explist,...>] => AP_RPuts( [<explist>] )" )
+   __pp_AddRule( hPP, "#define CRLF hb_OsNewLine()" )
+   __pp_AddRule( hPP, "#xcommand TEXT <into:TO,INTO> <v> => #pragma __cstream|<v>:=%s" )
+   __pp_AddRule( hPP, "#xcommand TEXT <into:TO,INTO> <v> ADDITIVE => #pragma __cstream|<v>+=%s" )
+   __pp_AddRule( hPP, "#xcommand TEMPLATE [ USING <x> ] [ PARAMS [<v1>] [,<vn>] ] => " + ;
+      '#pragma __cstream | AP_RPuts( InlinePrg( %s, [@<x>] [,<(v1)>][+","+<(vn)>] [, @<v1>][, @<vn>] ) )' )
+   __pp_AddRule( hPP, "#xcommand BLOCKS [ PARAMS [<v1>] [,<vn>] ] => " + ;
+      '#pragma __cstream | AP_RPuts( ReplaceBlocks( %s, "{{", "}}" [,<(v1)>][+","+<(vn)>] [, @<v1>][, @<vn>] ) )' )
+   __pp_AddRule( hPP, "#xcommand BLOCKS TO <b> [ PARAMS [<v1>] [,<vn>] ] => " + ;
+      '#pragma __cstream | <b>+=ReplaceBlocks( %s, "{{", "}}" [,<(v1)>][+","+<(vn)>] [, @<v1>][, @<vn>] )' )
+   __pp_AddRule( hPP, "#command ENDTEMPLATE => #pragma __endtext" )
+   __pp_AddRule( hPP, "#xcommand TRY  => BEGIN SEQUENCE WITH {| oErr | Break( oErr ) }" )
+   __pp_AddRule( hPP, "#xcommand CATCH [<!oErr!>] => RECOVER [USING <oErr>] <-oErr->" )
+   __pp_AddRule( hPP, "#xcommand FINALLY => ALWAYS" )
+   __pp_AddRule( hPP, "#xcommand DEFAULT <v1> TO <x1> [, <vn> TO <xn> ] => ;" + ;
+      "IF <v1> == NIL ; <v1> := <x1> ; END [; IF <vn> == NIL ; <vn> := <xn> ; END ]" )
+
+RETURN NIL
 
 
 FUNCTION ExecuteHrb( oHrb, cArgs )
@@ -52,29 +52,29 @@ RETURN hb_hrbDo( oHrb, cArgs )
 
 FUNCTION Execute( cCode, ... )
 
-   LOCAL oHrb, cCodePP, pCode, uRet, lReplaced := .T.         
-   LOCAL cOs		 := OS()
-   LOCAL cHBHeader	 := ''
-   
-	do case
-		case "Windows" $ OS()	; cHBHeader := "c:\harbour\include"
-		case "Linux" $ OS()		; cHBHeader := "~/harbour/include"
-	endcase   	
+   LOCAL oHrb, cCodePP, pCode, uRet, lReplaced := .T.
+   LOCAL cOs   := OS()
+   LOCAL cHBHeader  := ''
 
-    ErrorBlock( {| oError | MH_ErrorInfo( oError, @cCode ), Break( oError ) } )
+   DO CASE
+   CASE "Windows" $ OS() ; cHBHeader := "c:\harbour\include"
+   CASE "Linux" $ OS()  ; cHBHeader := "~/harbour/include"
+   ENDCASE
 
-    AddPPRules()      
-   
-    ReplaceBlocks( @cCode, "{%", "%}" )
-    cCodePP := __pp_Process( hPP, cCode )      
-   
+   ErrorBlock( {| oError | MH_ErrorInfo( oError, @cCode ), Break( oError ) } )
 
-    oHrb = HB_CompileFromBuf( cCodePP, .T., "-n", "-q2", "-I" + cHBheader, ;
+   AddPPRules()
+
+   ReplaceBlocks( @cCode, "{%", "%}" )
+   cCodePP := __pp_Process( hPP, cCode )
+
+
+   oHrb = HB_CompileFromBuf( cCodePP, .T., "-n", "-q2", "-I" + cHBheader, ;
       "-I" + hb_GetEnv( "HB_INCLUDE" ), hb_GetEnv( "HB_USER_PRGFLAGS" ) )
 
-    IF ! Empty( oHrb )
+   IF ! Empty( oHrb )
       uRet := hb_hrbDo( hb_hrbLoad( HB_HRB_BIND_OVERLOAD, oHrb ), ... )
-    ENDIF
+   ENDIF
 
 RETURN uRet
 
@@ -164,4 +164,3 @@ CLASS Template
 ENDCLASS
 
 // ----------------------------------------------------------------//
-
