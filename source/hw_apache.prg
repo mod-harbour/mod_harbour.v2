@@ -179,13 +179,11 @@ FUNCTION MH_LoadHrb( cHrbFile_or_oHRB )
 
          WHILE !hb_mutexLock( HW_Mutex() )
          ENDDO
+		 
          IF ! hb_HHasKey( _hHrbs, cHrbFile_or_oHRB )
             _hHrbs[ cHrbFile_or_oHRB ] := hb_hrbLoad( 2, cFile )
-
-// Trace
-            _d( cHrbFile_or_oHRB, hb_hrbGetFunList( _hHrbs[ cHrbFile_or_oHRB ] ) )
-
          ENDIF
+		 
          hb_mutexUnlock( HW_Mutex() )
       ELSE
 
@@ -214,7 +212,7 @@ FUNCTION MH_LoadHrb_Clear()
       aPair := hb_HPairAt( _hHrbs, n )
       hb_hrbUnload( aPair[ 2 ] )
    NEXT
-   _hHrbs := {}
+   _hHrbs := {=>}	// Really isn't necessary because the thread is closed
    hb_mutexUnlock( HW_Mutex() )
 
    RETU NIL
