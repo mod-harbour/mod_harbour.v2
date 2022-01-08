@@ -1,5 +1,5 @@
 /*
-**  hw_hash.prg -- Apache harbour module V2
+**  mh_persistent.prg -- Apache harbour module V2
 **  MH_HASH Persistense test sample - 
 ** (c) DHF, 2020-2021
 */
