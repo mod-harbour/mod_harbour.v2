@@ -507,8 +507,6 @@ extern EVP_VERIFYFINAL
 extern EVP_VERIFYINIT
 extern EVP_VERIFYINIT_EX
 extern EVP_VERIFYUPDATE
-extern EXECINLINE
-extern EXECUTEHRB
 extern EXENAME
 extern EXP
 extern EXPAND
@@ -586,7 +584,6 @@ extern GETDEFAULTPRINTER
 extern GETDOSETKEY
 extern GETE
 extern GETENV
-extern GETERRORINFO
 extern GETFLDCOL
 extern GETFLDROW
 extern GETFLDVAR
@@ -2048,7 +2045,6 @@ extern HTMLTOANSI
 extern HTMLTOOEM
 extern I18N
 extern I2BIN
-extern INCLUDE
 extern INDEXEXT
 extern INDEXKEY
 extern INDEXORD
@@ -2096,7 +2092,6 @@ extern INETSTATUS
 extern INFINITY
 extern INITGREEK
 extern INKEY
-extern INLINEPRG
 extern INT
 extern INTNEG
 extern INTPOS
@@ -2288,7 +2283,6 @@ extern NUMTOHEX
 extern NUMTOKEN
 extern NUMXOR
 extern NUMXORX
-extern OBJTOCHAR
 extern OCCURS
 extern OEMTOHTML
 extern OLE2TXTERROR
@@ -2463,7 +2457,6 @@ extern REMALL
 extern REMLEFT
 extern REMRIGHT
 extern RENAMEFILE
-extern REPLACEBLOCKS
 extern REPLALL
 extern REPLICATE
 extern REPLLEFT
@@ -2855,7 +2848,6 @@ extern TBSKIP
 extern TCGI
 extern TCGIFILE
 extern TEMPFILE
-extern TEMPLATE
 extern THREADGETCURRENT
 extern THREADGETCURRENTINTERNAL
 extern THREADSLEEP
@@ -2962,7 +2954,6 @@ extern VAL
 extern VALPOS
 extern VALTOARRAY
 extern VALTOBLOCK
-extern VALTOCHAR
 extern VALTOCHARACTER
 extern VALTODATE
 extern VALTOHASH
@@ -3397,9 +3388,11 @@ extern __XSAVESCREEN
 //	Apache mod	----------------------------------
 
 extern HB_URLDECODE 
+extern PTRTOSTR
+extern PTRTOUI
 
+extern AP_ECHO
 extern AP_RPUTS
-extern AP_RPUTS_OUT
 extern AP_BODY
 extern AP_FILENAME
 extern AP_GETENV
@@ -3419,13 +3412,20 @@ extern AP_SETCONTENTTYPE
 extern AP_POSTPAIRS
 extern AP_GETPAIRS
 extern AP_GETBODY
-extern MODBUILDDATE
-extern PTRTOSTR
-extern PTRTOUI
 
-extern HW_WRITE
-extern HW_HASH
-extern HW_HASHSET
-extern HW_HASHGET
-extern HW_EXITSTATUS
-extern HW_GETBODY
+extern MH_INLINEPRG
+extern MH_REPLACEBLOCKS
+extern MH_EXECINLINE
+extern MH_EXECUTEHRB
+extern MH_TEMPLATE
+extern MH_HASH
+extern MH_HASHSET
+extern MH_HASHGET
+extern MH_WRITE
+extern MH_EXITSTATUS
+extern MH_GETBODY
+extern MH_GETERRORINFO
+extern MH_OBJTOCHAR
+extern MH_VALTOCHAR
+extern MH_MODBUILDDATE
+extern MH_INCLUDE

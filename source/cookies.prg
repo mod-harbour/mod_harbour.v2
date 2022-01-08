@@ -7,12 +7,12 @@
 
 //----------------------------------------------------------------//
 
-function GetCookies( cKey )
+function MH_GetCookies( cKey )
 
-   local cCookies := AP_GetEnv( "HTTP_COOKIE" )
-   local aCookies := hb_aTokens( cCookies, ";" )
+   local cCookies 		:= ap_GetEnv( "HTTP_COOKIE" )
+   local aCookies 		:= hb_aTokens( cCookies, ";" )
+   local hHeadersOut 	:= ap_HeadersOut(), cCookieHeader
    local cCookie, hCookies := {=>}
-   local hHeadersOut := AP_HeadersOut(), cCookieHeader
 
    if( hb_HHasKey( hHeadersOut, "Set-Cookie" ) )
       cCookieHeader := hHeadersOut[ "Set-Cookie" ]
@@ -32,7 +32,7 @@ return if( valtype( cKey ) == 'C', HB_HGetDef( hCookies, cKey, '' ), hCookies )
 
 //----------------------------------------------------------------//
 
-function SetCookie( cName, cValue, nSecs, cPath, cDomain, lHttps, lOnlyHttp ) 
+function MH_SetCookie( cName, cValue, nSecs, cPath, cDomain, lHttps, lOnlyHttp ) 
 
    local cCookie := ''
 	
@@ -47,7 +47,7 @@ function SetCookie( cName, cValue, nSecs, cPath, cDomain, lHttps, lOnlyHttp )
 	
    // we build the cookie
    cCookie += cName + '=' + cValue + ';'
-   cCookie += 'expires=' + CookieExpires( nSecs ) + ';'
+   cCookie += 'expires=' + MH_CookieExpires( nSecs ) + ';'
    cCookie += 'path=' + cPath + ';'
    
    if ! Empty( cDomain )
@@ -57,7 +57,7 @@ function SetCookie( cName, cValue, nSecs, cPath, cDomain, lHttps, lOnlyHttp )
    // pending logical values for https y OnlyHttp
 
    // we send the cookie
-   AP_HeadersOutSet( "Set-Cookie", cCookie )
+   ap_HeadersOutSet( "Set-Cookie", cCookie )
 
 return nil
 
@@ -65,7 +65,7 @@ return nil
 // CookieExpire( nSecs ) builds the time format for the cookie
 // Using this model: 'Sun, 09 Jun 2019 16:14:00'
 
-function CookieExpires( nSecs )
+static function MH_CookieExpires( nSecs )
 
    local tNow := hb_datetime()	
    local tExpire   // TimeStampp 

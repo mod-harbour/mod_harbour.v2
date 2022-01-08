@@ -4,7 +4,7 @@ function Main()
 
 	AP_HeadersOutSet( "one", "first" )
    
-	SetCookie( "two", "second" )
+	mh_SetCookie( "two", "second" )
 
 	hHeaders := AP_HeadersOut()
    

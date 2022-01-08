@@ -1,5 +1,5 @@
 /*
-** hw_apache.prg -- Apache harbour module V2
+** mh_apache.prg -- Apache harbour module V2
 ** (c) DHF, 2020-2021
 ** MIT license
 */
@@ -12,16 +12,16 @@
 #include "hbthread.ch"
 #include "hbclass.ch"
 #include "hbhrb.ch"
-#include "hw_apache.ch"
+#include "mh_apache.ch"
 
 #define CRLF hb_OsNewLine()
 
-THREAD STATIC request_rec
-THREAD STATIC _cBuffer_Out  := ''
-THREAD STATIC _hHrbs
-THREAD STATIC _aFiles
-THREAD STATIC _bError
-THREAD STATIC _t_hTimer
+THREAD STATIC ts_request_rec
+THREAD STATIC ts_cBuffer_Out  := ''
+THREAD STATIC ts_hHrbs
+THREAD STATIC ts_aFiles
+THREAD STATIC ts_bError
+THREAD STATIC ts_t_hTimer
 
 FUNCTION Main()
 
@@ -31,7 +31,7 @@ RETURN NIL
 
 // ------------------------------------------------------------------ //
 
-FUNCTION HW_Thread( r )
+FUNCTION MH_Runner( r )
 
    LOCAL cFileName
    LOCAL pThreadWait
@@ -39,26 +39,24 @@ FUNCTION HW_Thread( r )
 
    // Init thread statics vars
 
-   request_rec  := r   // Request from Apache
-   _cBuffer_Out  := ''   // Buffer for text out
-   _hHrbs    := { => }   // Internal hash of loaded hrbs
-   _aFiles   := {}   // Internal array of loaded name files
+   ts_request_rec	:= r   		// Request from Apache
+   ts_cBuffer_Out	:= ''   	// Buffer for text out
+   ts_hHrbs    	:= { => } 	// Internal hash of loaded hrbs
+   ts_aFiles   	:= {}   	// Internal array of loaded name files
 
    // ------------------------
-
-
-   // ErrorBlock( {| oError | GetErrorInfo( oError ), Break( oError ) } )
+   
    ErrorBlock( {| oError | MH_ErrorInfo( oError ), Break( oError ) } )
 
-   _t_hTimer = hb_idleAdd( {|| HW_RequestMaxTime( hb_threadSelf(), 15 ) }  )
+   ts_t_hTimer = hb_idleAdd( {|| MH_RequestMaxTime( hb_threadSelf(), 15 ) }  )
 
-   cFileName = AP_FileName()  // HW_FileName()
+   cFileName = ap_FileName()  
 
    IF File( cFileName )
 
       IF Lower( Right( cFileName, 4 ) ) == ".hrb"
 
-         hb_hrbDo( hb_hrbLoad( 2, cFileName ), AP_Args() )  // HW_Args()
+         hb_hrbDo( hb_hrbLoad( 2, cFileName ), ap_Args() ) 
 
       ELSE
 
@@ -66,23 +64,23 @@ FUNCTION HW_Thread( r )
             SubStr( cFileName, 1, RAt( "/", cFileName ) + RAt( "\", cFileName ) - 1 ) )
          cCode := MemoRead( cFileName )
 
-         Execute( cCode, AP_Args() ) // HW_Execute( cCode )
+         MH_Execute( cCode, ap_Args() ) 
 
       ENDIF
 
    ELSE
 
-      HW_EXITSTATUS( 404 )
+      mh_ExitStatus( 404 )
 
    ENDIF
 
-// Output of buffered text
+	// Output of buffered text
 
-   AP_RPuts_Out( _cBuffer_Out )
+   ap_RPuts( ts_cBuffer_Out )
 
    // Unload hrbs loaded.
 
-   MH_LoadHrb_Clear()
+   mh_LoadHrb_Clear()
 
 RETURN 1
 
@@ -90,11 +88,11 @@ RETURN 1
 
 FUNCTION GetRequestRec()
 
-RETURN request_rec
+RETURN ts_request_rec
 
 // ----------------------------------------------------------------//
 
-FUNCTION HW_RequestMaxTime( pThread, nTime )
+FUNCTION MH_RequestMaxTime( pThread, nTime )
 
    sec := Seconds()
 
@@ -102,7 +100,7 @@ FUNCTION HW_RequestMaxTime( pThread, nTime )
       hb_idleSleep( 0.01 )
    ENDDO
 
-   HW_EXITSTATUS( 408 )
+   mh_ExitStatus( 408 )
 
    while( hb_threadQuitRequest( pThread ) )
       hb_idleSleep( 0.01 )
@@ -113,7 +111,8 @@ RETURN
 
 // ----------------------------------------------------------------//
 
-FUNCTION AP_RPUTS( ... )
+//FUNCTION AP_RPUTS( ... )
+FUNCTION AP_ECHO( ... )
 
    LOCAL aParams := hb_AParams()
    LOCAL n    := Len( aParams )
@@ -123,10 +122,10 @@ FUNCTION AP_RPUTS( ... )
    ENDIF
 
    FOR i = 1 TO n - 1
-      _cBuffer_Out += valtochar( aParams[ i ] ) + ' '
+      ts_cBuffer_Out += mh_valtochar( aParams[ i ] ) + ' '
    NEXT
 
-   _cBuffer_Out += valtochar( aParams[ n ] )
+   ts_cBuffer_Out += mh_valtochar( aParams[ n ] )
 
 RETURN
 
@@ -177,14 +176,14 @@ FUNCTION MH_LoadHrb( cHrbFile_or_oHRB )
 
       IF File( cFile )
 
-         WHILE !hb_mutexLock( HW_Mutex() )
+         WHILE !hb_mutexLock( MH_Mutex() )
          ENDDO
 		 
-         IF ! hb_HHasKey( _hHrbs, cHrbFile_or_oHRB )
-            _hHrbs[ cHrbFile_or_oHRB ] := hb_hrbLoad( 2, cFile )
+         IF ! hb_HHasKey( ts_hHrbs, cHrbFile_or_oHRB )
+            ts_hHrbs[ cHrbFile_or_oHRB ] := hb_hrbLoad( 2, cFile )
          ENDIF
 		 
-         hb_mutexUnlock( HW_Mutex() )
+         hb_mutexUnlock( MH_Mutex() )
       ELSE
 
          MH_DoError( "MH_LoadHrb() file not found: " + cFile  )
@@ -193,11 +192,11 @@ FUNCTION MH_LoadHrb( cHrbFile_or_oHRB )
 
    CASE cType == 'P'
 
-      _hHrbs[ cHrbFile_or_oHRB ] := hb_hrbLoad( HB_HRB_BIND_DEFAULT, hb_GetEnv( "PRGPATH" ) + "/" + cHrbFile_or_oHRB )
+      ts_hHrbs[ cHrbFile_or_oHRB ] := hb_hrbLoad( HB_HRB_BIND_DEFAULT, hb_GetEnv( "PRGPATH" ) + "/" + cHrbFile_or_oHRB )
 
    ENDCASE
 
-   RETU ''
+RETU ''
 
 // ----------------------------------------------------------------//
 
@@ -205,17 +204,17 @@ FUNCTION MH_LoadHrb_Clear()
 
    LOCAL n
 
-   WHILE !hb_mutexLock( HW_Mutex() )
+   WHILE !hb_mutexLock( MH_Mutex() )
    ENDDO
 
-   FOR n = 1 TO Len( _hHrbs )
-      aPair := hb_HPairAt( _hHrbs, n )
+   FOR n = 1 TO Len( ts_hHrbs )
+      aPair := hb_HPairAt( ts_hHrbs, n )
       hb_hrbUnload( aPair[ 2 ] )
    NEXT
-   _hHrbs := {=>}	// Really isn't necessary because the thread is closed
-   hb_mutexUnlock( HW_Mutex() )
+   ts_hHrbs := {=>}	// Really isn't necessary because the thread is closed
+   hb_mutexUnlock( MH_Mutex() )
 
-   RETU NIL
+RETU NIL
 
 // ----------------------------------------------------------------//
 
@@ -223,12 +222,12 @@ FUNCTION MH_LoadHrb_Show()
 
    LOCAL n
 
-   FOR n = 1 TO Len( _hHrbs )
-      aPair := hb_HPairAt( _hHrbs, n )
+   FOR n = 1 TO Len( ts_hHrbs )
+      aPair := hb_HPairAt( ts_hHrbs, n )
       _d( aPair[ 1 ], hb_hrbGetFunList( aPair[ 2 ] ) )
    NEXT
 
-   RETU NIL
+RETU NIL
 
 // ----------------------------------------------------------------//
 
@@ -236,13 +235,17 @@ FUNCTION MH_LoadFile( cFile )
 
    LOCAL cPath_File := hb_GetEnv( "PRGPATH" ) + '/' + cFile
 
-   IF AScan( _aFiles, cFile ) > 0
+   IF AScan( ts_aFiles, cFile ) > 0
       RETU ''
    ENDIF
+   
+   if "Linux" $ OS()
+      cPath_File = StrTran( cPath_File, '\', '/' )     
+   endif      
 
    IF File( cPath_File )
 
-      AAdd( _aFiles, cFile )
+      AAdd( ts_aFiles, cFile )
       RETURN hb_MemoRead( cPath_File )
 
    ELSE
@@ -250,7 +253,7 @@ FUNCTION MH_LoadFile( cFile )
    ENDIF
 
 
-   RETU ''
+RETU ''
 
 // ----------------------------------------------------------------//
 
@@ -258,33 +261,33 @@ FUNCTION MH_ErrorInfo( oError, cCode )
 
    hb_default( @cCode, "" )
 
-   IF ValType( _bError ) == 'B'
+   IF ValType( ts_bError ) == 'B'
 
-      _cBuffer_Out := ''
-      Eval( _bError, oError, cCode )
+      ts_cBuffer_Out := ''
+      Eval( ts_bError, oError, cCode )
 
    ELSE
 
-      GetErrorInfo( oError, @cCode )
+      MH_GetErrorInfo( oError, cCode )
 
    ENDIF
 
 // Output of buffered text
 
-   AP_RPuts_Out( _cBuffer_Out )
+   ap_RPuts( ts_cBuffer_Out )
 
    // Unload hrbs loaded.
 
-   MH_LoadHrb_Clear()
+   mh_LoadHrb_Clear()
 
 // EXIT.----------------
 
-   RETU NIL
+RETU NIL
 
 FUNCTION MH_ErrorBlock( bBlockError )
 
-   _bError := bBlockError
-   RETU NIL
+   ts_bError := bBlockError
+RETU NIL
 
 // ----------------------------------------------------------------//
 

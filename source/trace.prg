@@ -7,7 +7,7 @@ function _d( ... )
 	local i 
    
 	for i = 1 TO n
-		WAPI_OutputDebugString( ValToChar( aParams[i] ) + chr(10) + chr(13) )
+		WAPI_OutputDebugString( mh_ValToChar( aParams[i] ) + chr(10) + chr(13) )
 	next	
 
 retu nil 

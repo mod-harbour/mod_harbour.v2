@@ -31,7 +31,7 @@ int mh_rputslen( const char * szText, HB_SIZE iLength )
 
 //----------------------------------------------------------------//
 
-HB_FUNC( AP_RPUTS_OUT )
+HB_FUNC( AP_RPUTS )
 {
    int iParams = hb_pcount(), iParam;
 
@@ -41,7 +41,7 @@ HB_FUNC( AP_RPUTS_OUT )
 
       if( HB_ISOBJECT( iParam ) )
       {
-         hb_vmPushSymbol( hb_dynsymGetSymbol( "OBJTOCHAR" ) );
+         hb_vmPushSymbol( hb_dynsymGetSymbol( "MH_OBJTOCHAR" ) );
          hb_vmPushNil();
          hb_vmPush( pItem );
          hb_vmFunction( 1 );
@@ -49,7 +49,7 @@ HB_FUNC( AP_RPUTS_OUT )
       }
       else if( HB_ISHASH( iParam ) || HB_ISARRAY( iParam ) )
       {
-         hb_vmPushSymbol( hb_dynsymGetSymbol( "VALTOCHAR" ) );
+         hb_vmPushSymbol( hb_dynsymGetSymbol( "MH_VALTOCHAR" ) );
          hb_vmPushNil();
          hb_vmPush( pItem );
          hb_vmFunction( 1 );
@@ -74,7 +74,7 @@ HB_FUNC( AP_RPUTS_OUT )
 
 //----------------------------------------------------------------//
 
-HB_FUNC( MODBUILDDATE )
+HB_FUNC( MH_MODBUILDDATE )
 {
    char * pszDate;
    

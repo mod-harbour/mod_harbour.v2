@@ -4,10 +4,11 @@
 function main()
 
 	//	From module_a
-		? 'Today: ' + Today()
+		? 'Version Plug: ', PlugVersion()
+		? 'Today: ', Today()
 		
 	//	From module_b
-		? 'NextWeek: ' + DToC( NextWeek() )
+		? 'NextWeek: ' , DToC( NextWeek() )
 
 	
 retu nil	

@@ -50,7 +50,7 @@ static apr_status_t shm_cleanup_wrapper(void *unused)
 
 //----------------------------------------------------------------//
 
-void hw_StartMutex() 
+void mh_StartMutex() 
 {
 #ifdef _WINDOWS_
    apr_status_t rs;    
@@ -64,7 +64,7 @@ void hw_StartMutex()
 
 //----------------------------------------------------------------//
 
-void hw_EndMutex()
+void mh_EndMutex()
 {
 #ifdef _WINDOWS_
    apr_status_t rs;    
@@ -84,7 +84,7 @@ request_rec * GetRequestRec( void )
 
 //----------------------------------------------------------------//
 
-HB_FUNC( HW_EXITSTATUS )
+HB_FUNC( MH_EXITSTATUS )
 {
    request_rec *rec = GetRequestRec();
    if( hb_extIsNil( 1 ) ) {
@@ -96,21 +96,21 @@ HB_FUNC( HW_EXITSTATUS )
 
 //----------------------------------------------------------------//
 
-HB_FUNC( HW_STARTMUTEX )
+HB_FUNC( MH_STARTMUTEX )
 {
-   hw_StartMutex();
+   mh_StartMutex();
 }
 
 //----------------------------------------------------------------//
 
-HB_FUNC( HW_ENDMUTEX )
+HB_FUNC( MH_ENDMUTEX )
 {
-   hw_EndMutex();
+   mh_EndMutex();
 }
 
 //----------------------------------------------------------------//
 
-HB_FUNC( HW_GETBODY )
+HB_FUNC( MH_GETBODY )
 {
    request_rec * r = GetRequestRec();
 
@@ -139,14 +139,14 @@ HB_FUNC( HW_GETBODY )
 
 //----------------------------------------------------------------//
 
-HB_FUNC( HW_HASH )
+HB_FUNC( MH_HASH )
 {
    hb_itemReturn( hHash );
 }
 
 //----------------------------------------------------------------//
 
-HB_FUNC( HW_MUTEX )
+HB_FUNC( MH_MUTEX )
 {
    hb_itemReturn( hMutex );
 }
@@ -154,7 +154,7 @@ HB_FUNC( HW_MUTEX )
 //----------------------------------------------------------------//
 
 
-HB_FUNC( HW_WRITE )
+HB_FUNC( MH_WRITE )
 {
    hb_retni( ap_rwrite( ( void * ) hb_parc( 1 ), ( int ) hb_parclen( 1 ), GetRequestRec() ) );
 }
@@ -261,14 +261,14 @@ static int harbourV2_handler( request_rec * r ) {
    ap_add_cgi_vars( r );
    ap_add_common_vars( r );
 
-   hw_StartMutex();
+   mh_StartMutex();
    if( ! hb_vmIsActive() ) {  
       hb_vmInit( HB_FALSE );
    };
-   hw_EndMutex();
+   mh_EndMutex();
 
    hb_vmThreadInit( NULL );
-   hb_vmPushDynSym( hb_dynsymFind( "HW_THREAD" ) );
+   hb_vmPushDynSym( hb_dynsymFind( "MH_RUNNER" ) );
    hb_vmPushNil(); 
    hb_vmPushPointer( r );
    hb_vmFunction( 1 );

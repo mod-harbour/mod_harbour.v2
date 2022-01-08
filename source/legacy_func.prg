@@ -7,7 +7,7 @@
 
 //----------------------------------------------------------------//
 
-#include 'hw_apache.ch'
+#include 'mh_apache.ch'
 
 #define CRLF '<br>'
 
@@ -15,7 +15,7 @@
 
 function AP_PostPairs( lUrlDecode )
 
-   local aHeadersIn		:= AP_HeadersIn()
+   local aHeadersIn		:= ap_HeadersIn()
    local cContentType 	:= lower( HB_HGetDef( aHeadersIn, 'Content-Type', '' ) )
    local hPairs := {=>}
    local aPairs, cPair, uPair, nTable, aTable, cKey, cTag
@@ -29,11 +29,11 @@ function AP_PostPairs( lUrlDecode )
    
    if hb_at( 'application/json', cContentType ) > 0 
    
-		hPairs := hb_jsondecode( AP_Body() )
+		hPairs := hb_jsondecode( ap_Body() )
 		
 	else 
 	  
-	   aPairs := hb_ATokens( AP_Body(), "&" )	   
+	   aPairs := hb_ATokens( ap_Body(), "&" )	   
 	
 	   hb_default( @lUrlDecode, .T. )
 	   
@@ -67,7 +67,7 @@ return hPairs
 
 function AP_GetPairs( lUrlDecode )	
 
-   local cArgs 	:= AP_Args()
+   local cArgs 	:= ap_Args()
    local hPairs := {=>}
    local cPair, uPair, nPos, cKey, cTag
 	
@@ -102,16 +102,16 @@ return hPairs
 
 //----------------------------------------------------------------//
 
-function PathUrl()
+function MH_PathUrl()
 
-   local cPath := AP_GetEnv( 'SCRIPT_NAME' )   
+   local cPath := ap_GetEnv( 'SCRIPT_NAME' )   
    local n     := RAt( '/', cPath )
         
 return Substr( cPath, 1, n - 1 )
 
 //----------------------------------------------------------------//
 
-function PathBase( cDirFile )
+function MH_PathBase( cDirFile )
 
    local cPath := hb_GetEnv( "PRGPATH" ) 
     
@@ -127,9 +127,9 @@ return cPath
 
 //----------------------------------------------------------------//
 
-function Include( cFile )
+function MH_Include( cFile )
 
-   local cPath := AP_GetEnv( "DOCUMENT_ROOT" ) 
+   local cPath := ap_GetEnv( "DOCUMENT_ROOT" ) 
 
    hb_default( @cFile, '' )
    cFile = cPath + cFile   
@@ -146,11 +146,14 @@ return ""
 
 //----------------------------------------------------------------//
 
-function GetErrorInfo( oError, cCode )
+function MH_GetErrorInfo( oError, cCode )
 
-	local cInfo := "Error: " + oError:description + "<br>"
+	local cInfo := ''
     local n, aLines, nLine   
 
+	cInfo += "<h3>Error System</h3><hr>"
+	cInfo += "Error: " + oError:description + "<br>"
+	
    if ! Empty( oError:operation )
       cInfo += "operation: " + oError:operation + "<br>"
    endif   
@@ -163,32 +166,40 @@ function GetErrorInfo( oError, cCode )
    if ValType( oError:Args ) == "A"
       for n = 1 to Len( oError:Args )
           cInfo += "[" + Str( n, 4 ) + "] = " + ValType( oError:Args[ n ] ) + ;
-                   "   " + ValToChar( oError:Args[ n ] ) + ;
+                   "   " + MH_ValToChar( oError:Args[ n ] ) + ;
                    If( ValType( oError:Args[ n ] ) == "A", " Len: " + ;
                    AllTrim( Str( Len( oError:Args[ n ] ) ) ), "" ) + "<br>"
       next
    endif	
 	
    n = 2
+   
+   cInfo += CRLF 
+   
    while ! Empty( ProcName( n ) )  
       cInfo += "called from: " + If( ! Empty( ProcFile( n ) ), ProcFile( n ) + ", ", "" ) + ;
                ProcName( n ) + ", line: " + ;
                AllTrim( Str( ProcLine( n ) ) ) + "<br>"
       n++
    end
-
-  
+   
+   /*
    if ! Empty( cCode )
+
       aLines = hb_ATokens( cCode, Chr( 10 ) )
+
       cInfo += "<br>Source:<br>" + CRLF
       n = 1
+	  
       while( nLine := ProcLine( ++n ) ) == 0
-      end   
+      end  	  
+	 
       for n = Max( nLine - 2, 1 ) to Min( nLine + 2, Len( aLines ) )
          cInfo += StrZero( n, 4 ) + If( n == nLine, " =>", ": " ) + ;
                   hb_HtmlEncode( aLines[ n ] ) + CRLF
       next
    endif  
+   */
 
 	?? cInfo  
 
@@ -196,7 +207,7 @@ return nil
 
 //----------------------------------------------------------------//
 
-function ObjToChar( o )
+function MH_ObjToChar( o )
 
    local hObj := {=>}, aDatas := __objGetMsgList( o, .T. )
    local hPairs := {=>}, aParents := __ClsGetAncestors( o:ClassH )
@@ -210,11 +221,11 @@ function ObjToChar( o )
    hObj[ "DATAs" ]   = hPairs
    hObj[ "METHODs" ] = __objGetMsgList( o, .F. )
 
-return ValToChar( hObj )
+return MH_ValToChar( hObj )
 
 //----------------------------------------------------------------//
 
-function ValToChar( u )
+function MH_ValToChar( u )
 
    local cType := ValType( u )
    local cResult
@@ -236,7 +247,7 @@ function ValToChar( u )
            cResult = hb_ValToExp( u )
 
       case cType == "O"
-           cResult = ObjToChar( u )
+           cResult = MH_ObjToChar( u )
 
       case cType == "P"
            cResult = "(P)" 
@@ -254,7 +265,7 @@ function ValToChar( u )
            cResult = "nil"
 
       otherwise
-           cResult = "type not supported yet in function ValToChar()"
+           cResult = "type not supported yet in function MH_ValToChar()"
    endcase
 
 return cResult   

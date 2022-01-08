@@ -7,7 +7,7 @@ function Main()
     <title>POST example</title>
   </head>
   <body>
-    <form action="postpairs.prg" method="post">
+    <form action="mh_postpairs.prg" method="post">
       User name:
       <br>
       <input type="text" name="username">

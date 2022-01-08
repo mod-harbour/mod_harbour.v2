@@ -46,17 +46,17 @@
 #endif
 
 
-#include "hw_apache.ch"
+#include "mh_apache.ch"
 
 // ----------------------------------------------------------------//
 
-function ModName()
+function MH_ModName()
 
 retu MODNAME
 
 // ----------------------------------------------------------------//
 
-function ModVersion()
+function MH_ModVersion()
 
 retu MODVERSION 
 

@@ -23,8 +23,8 @@
 -llibhttpd
 
 -ic:\xampp\apache\include
-source/hw_apache.prg
 source/mod_harbour.c
+source/mh_apache.prg
 source/ap_func.prg
 source/ap_func_c.c
 source/cookies.prg

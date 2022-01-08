@@ -1,9 +1,11 @@
 function Main()
+	local o 
 
   TRY 
      ? "TRY"+5
-  CATCH 
+  CATCH o
      ? "CATCH"
+	 ? o
   END
   
 return nil  

@@ -2,7 +2,7 @@
 
 function Main()
    
-	local hCookies 	:= GetCookies()
+	local hCookies 	:= MH_GetCookies()
 	local hKey 		:= nil 
 	
 	?? 'GetCookies()'
@@ -15,7 +15,7 @@ function Main()
 	
 	? '<hr>'
 	
-	? 'GetCookies( "MYCookiENamE" )', GetCookies( "MYCookiENamE" )
+	? 'MH_GetCookies( "MYCookiENamE" )', MH_GetCookies( "MYCookiENamE" )
 	
 return nil
 

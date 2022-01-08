@@ -4,12 +4,12 @@
 */
 
 
-THREAD STATIC HWBody 
+THREAD STATIC ts_Body 
 
 function AP_BODY()
    
-   if HWBody == NIL         
-      HWBody = AP_GetBody()
+   if ts_Body == NIL         
+      ts_Body = ap_GetBody()
    endif
 
-retu HWBody
+retu ts_Body
