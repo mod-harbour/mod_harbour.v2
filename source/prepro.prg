@@ -12,19 +12,19 @@ THREAD STATIC hPP
 
 FUNCTION MH_AddPPRules()
 
-	local cOs := OS()
+   LOCAL cOs := OS()
 
    IF hPP == nil
-		hPP = __pp_Init()
-	  
-		DO CASE
-			CASE "Windows" $ cOs 	; __pp_Path( hPP, "c:\harbour\include" )
-			CASE "Linux" $ cOs  	; __pp_Path( hPP, "~/harbour/include" )
-		ENDCASE	  
+      hPP = __pp_Init()
 
-		IF ! Empty( hb_GetEnv( "HB_INCLUDE" ) )
-			__pp_Path( hPP, hb_GetEnv( "HB_INCLUDE" ) )
-		ENDIF
+      DO CASE
+      CASE "Windows" $ cOs  ; __pp_Path( hPP, "c:\harbour\include" )
+      CASE "Linux" $ cOs   ; __pp_Path( hPP, "~/harbour/include" )
+      ENDCASE
+
+      IF ! Empty( hb_GetEnv( "HB_INCLUDE" ) )
+         __pp_Path( hPP, hb_GetEnv( "HB_INCLUDE" ) )
+      ENDIF
    ENDIF
 
    __pp_AddRule( hPP, "#xcommand ? [<explist,...>] => ap_Echo( '<br>' [,<explist>] )" )
@@ -61,26 +61,56 @@ FUNCTION MH_Execute( cCode, ... )
    LOCAL oHrb, cCodePP, pCode, uRet, lReplaced := .T.
    LOCAL cOs   := OS()
    LOCAL cHBHeader  := ''
+   LOCAL disablecache := .F.
+   LOCAL tFilename
+   LOCAL cFilename := ap_FileName()
 
    DO CASE
-	CASE "Windows" $ cOs 	; cHBHeader := "c:\harbour\include"
-	CASE "Linux" $ cOs  	; cHBHeader := "~/harbour/include"
+   CASE "Windows" $ cOs  ; cHBHeader := "c:\harbour\include"
+   CASE "Linux" $ cOs   ; cHBHeader := "~/harbour/include"
    ENDCASE
 
    ErrorBlock( {| oError | mh_ErrorInfo( oError, @cCode ), Break( oError ) } )
 
    mh_AddPPRules()
 
-   mh_ReplaceBlocks( @cCode, "{%", "%}" )
-   
-   cCodePP := __pp_Process( hPP, cCode )
+   IF 'function __Inline(' $ cCode
+      disablecache = .T.
+   ELSE
+      hb_FGetDateTime( cFilename, @tFilename )
+   ENDIF
 
+   IF ( iif( hb_HHasKey( MH_PcodeCached(), cFilename ), tFilename != MH_PcodeCached()[ cFilename ][ 2 ], .T. ) .OR. disablecache )
 
-   oHrb = HB_CompileFromBuf( cCodePP, .T., "-n", "-q2", "-I" + cHBheader, ;
-      "-I" + hb_GetEnv( "HB_INCLUDE" ), hb_GetEnv( "HB_USER_PRGFLAGS" ) )
+      disablecache := mh_ReplaceBlocks( @cCode, "{%", "%}" )
+      cCodePP := __pp_Process( hPP, cCode )
+
+      oHrb = HB_CompileFromBuf( cCodePP, .T., "-n", "-q2", "-I" + cHBheader, ;
+         "-I" + hb_GetEnv( "HB_INCLUDE" ), hb_GetEnv( "HB_USER_PRGFLAGS" ) )
+
+      IF !disablecache
+
+         WHILE !hb_mutexLock( MH_Mutex() )
+         ENDDO
+
+         MH_PcodeCached()[ cFilename ] = { oHrb, tFilename }
+         hb_mutexUnlock( MH_Mutex() )
+
+      ENDIF
+
+      ts_lcached := .F.
+
+   ELSE
+
+      oHrb = MH_PcodeCached()[ cFilename ][ 1 ]
+      ts_lcached := .T.
+
+   ENDIF
 
    IF ! Empty( oHrb )
+
       uRet := hb_hrbDo( hb_hrbLoad( HB_HRB_BIND_OVERLOAD, oHrb ), ... )
+
    ENDIF
 
 RETURN uRet
@@ -90,7 +120,7 @@ RETURN uRet
 
 PROCEDURE DoBreak( oError )
 
-   //? GetErrorInfo( oError )
+   // ? GetErrorInfo( oError )
 
    BREAK
 
