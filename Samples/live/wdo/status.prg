@@ -10,7 +10,7 @@
 FUNCTION Main()
 
 	LOCAL o, oRs, n, j
-	LOCAl cSql 	:= 'select * from customer where age = ' + str(int(hb_Random( 20, 90 ))) + ' limit 10'
+	LOCAl cSql 	:= 'SHOW STATUS WHERE variable_name LIKE "Threads_%" OR variable_name = "Connections"'
 	
     IF mh_HashGet( 'oMySql' ) != NIL
 
@@ -33,7 +33,7 @@ FUNCTION Main()
 	IF !empty( hRes := o:Query( cSql ) )		
 	
 		WHILE ( !empty( hRs := o:Fetch_Assoc( hRes ) ) )			
-			? hRs[ 'first' ], hRs[ 'last' ], hRs[ 'street' ], hRs[ 'city' ], hRs[ 'age' ]
+			? hRs[ 'Variable_name'], hRs[ 'Value' ]
 		END
 		
 	ELSE 

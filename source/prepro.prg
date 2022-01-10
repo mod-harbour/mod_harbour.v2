@@ -8,6 +8,8 @@
 #include "hbclass.ch"
 #include "hbhrb.ch"
 
+#include "mh_apache.ch"
+
 THREAD STATIC hPP
 
 FUNCTION MH_AddPPRules()
@@ -50,7 +52,7 @@ RETURN NIL
 
 FUNCTION MH_ExecuteHrb( oHrb, cArgs )
 
-   ErrorBlock( {| oError | ap_Echo( mh_GetErrorInfo( oError ) ), Break( oError ) } )
+   ErrorBlock( {| oError | ap_Echo( mh_ErrorSys( oError ) ), Break( oError ) } )   
 
 RETURN hb_hrbDo( oHrb, cArgs )
 
@@ -58,16 +60,17 @@ RETURN hb_hrbDo( oHrb, cArgs )
 
 FUNCTION MH_Execute( cCode, ... )
 
-   LOCAL oHrb, cCodePP, pCode, uRet, lReplaced := .T.
+   LOCAL oHrb, pCode, uRet, lReplaced := .T.
    LOCAL cOs   := OS()
    LOCAL cHBHeader  := ''
+   LOCAL cCodePP	:= ''
 
    DO CASE
 	CASE "Windows" $ cOs 	; cHBHeader := "c:\harbour\include"
 	CASE "Linux" $ cOs  	; cHBHeader := "~/harbour/include"
    ENDCASE
 
-   ErrorBlock( {| oError | mh_ErrorInfo( oError, @cCode ), Break( oError ) } )
+   ErrorBlock( {| oError | mh_ErrorSys( oError, @cCode, @cCodePP ), Break( oError ) } )
 
    mh_AddPPRules()
 
@@ -141,21 +144,34 @@ RETURN MH_Execute( "function __Inline( " + cParams + " )" + hb_osNewLine() + cCo
 
 FUNCTION MH_ReplaceBlocks( cCode, cStartBlock, cEndBlock, cParams, ... )
 
-   LOCAL nStart, nEnd, cBlock
-   LOCAL lReplaced := .F.
+	LOCAL nStart, nEnd, cBlock
+	LOCAL lReplaced := .F.
+   
+	hb_default( @cStartBlock, "{{" )
+	hb_default( @cEndBlock, "}}" )
+	hb_default( @cParams, "" )   
 
-   hb_default( @cStartBlock, "{{" )
-   hb_default( @cEndBlock, "}}" )
-   hb_default( @cParams, "" )
+	mh_stackblock( 'code', cCode )
+   
+   
 
-   WHILE ( nStart := At( cStartBlock, cCode ) ) != 0 .AND. ;
+	WHILE ( nStart := At( cStartBlock, cCode ) ) != 0 .AND. ;
          ( nEnd := At( cEndBlock, cCode ) ) != 0
-      cBlock = SubStr( cCode, nStart + Len( cStartBlock ), nEnd - nStart - Len( cEndBlock ) )
-      cCode = SubStr( cCode, 1, nStart - 1 ) + ;
-         mh_ValToChar( Eval( &( "{ |" + cParams + "| " + cBlock + " }" ), ... ) ) + ;
-         SubStr( cCode, nEnd + Len( cEndBlock ) )
-      lReplaced = .T.
-   END
+		 
+		cBlock = SubStr( cCode, nStart + Len( cStartBlock ), nEnd - nStart - Len( cEndBlock ) )
+	  
+		mh_stackblock( 'error', cStartBlock + cBlock + cEndBlock)
+
+		cCode = SubStr( cCode, 1, nStart - 1 ) + ;
+        mh_ValToChar( Eval( &( "{ |" + cParams + "| " + cBlock + " }" ), ... ) ) + ;
+        SubStr( cCode, nEnd + Len( cEndBlock ) )		 
+
+		lReplaced = .T.
+	END         
+   
+	mh_stackblock()   
+
+   
 
 RETURN If( hb_PIsByRef( 1 ), lReplaced, cCode )
 

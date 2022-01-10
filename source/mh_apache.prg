@@ -46,7 +46,7 @@ FUNCTION MH_Runner( r )
 
    // ------------------------
    
-   ErrorBlock( {| oError | MH_ErrorInfo( oError ), Break( oError ) } )
+   ErrorBlock( {| oError | MH_ErrorSys( oError ), Break( oError ) } )
 
    ts_t_hTimer = hb_idleAdd( {|| MH_RequestMaxTime( hb_threadSelf(), 15 ) }  )
 
@@ -111,7 +111,6 @@ RETURN
 
 // ----------------------------------------------------------------//
 
-//FUNCTION AP_RPUTS( ... )
 FUNCTION AP_ECHO( ... )
 
    LOCAL aParams := hb_AParams()
@@ -257,20 +256,33 @@ RETU ''
 
 // ----------------------------------------------------------------//
 
-FUNCTION MH_ErrorInfo( oError, cCode )
+FUNCTION MH_ErrorSys( oError, cCode, cCodePP )
 
-   hb_default( @cCode, "" )
+	LOCAL hError
 
-   IF ValType( ts_bError ) == 'B'
+	hb_default( @cCode, "" )
+	hb_default( @cCodePP, "" )
+   
+	//	Delete buffer out
+   
+		ts_cBuffer_Out := ''
+		
+	//	Recover data info error
+	
+		hError := MH_ErrorInfo( oError, cCode, cCodePP )
+	
+	
+	IF ValType( ts_bError ) == 'B'
 
-      ts_cBuffer_Out := ''
-      Eval( ts_bError, oError, cCode )
+		Eval( ts_bError, oError, cCode, cCodePP )
 
-   ELSE
+	ELSE
 
-      MH_GetErrorInfo( oError, cCode )
+      //MH_GetErrorInfo( oError, cCode )
+      //MH_ErrorSys( oError, cCode, cCodePP )
+		MH_ErrorShow( hError )
 
-   ENDIF
+	ENDIF
 
 // Output of buffered text
 

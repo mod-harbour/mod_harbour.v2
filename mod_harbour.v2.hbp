@@ -34,6 +34,7 @@ source/main.prg
 source/persistence.prg
 source/prepro.prg
 source/trace.prg
+source/errorsys.prg
 
 
 {allmsvc}-cflag=-Ic:\xampp\apache\include
