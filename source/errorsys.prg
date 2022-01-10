@@ -16,6 +16,8 @@ function MH_ErrorInfo( oError, cCode, cCodePP )
 	
 	//	Init hError info 
 	
+		hError[ 'date' ]		:= DToC( Date() )
+		hError[ 'time' ]		:= time()
 		hError[ 'description' ]	:= ''
 		hError[ 'operation' ]	:= ''
 		hError[ 'filename' ]	:= ''
@@ -115,6 +117,8 @@ function MH_ErrorInfo( oError, cCode, cCodePP )
 		
 		if nL > 0
 		
+			hError[ 'line' ] := nL 
+		
 			//	Xec vectors 	
 			//	{ nLine, nOffset }
 			//	{ 1, 5 }, { 39, 8 }
@@ -152,7 +156,7 @@ function MH_ErrorInfo( oError, cCode, cCodePP )
 	
     n = 2  
 	lReview = .f.
-   
+  
     while ! Empty( ProcName( n ) )  
 	
 		cInfo := "called from: " + If( ! Empty( ProcFile( n ) ), ProcFile( n ) + ", ", "" ) + ;
@@ -164,8 +168,10 @@ function MH_ErrorInfo( oError, cCode, cCodePP )
 		n++
 		
 		if nL == 0 .and. !lReview 
+	
 			if ProcFile(n) == 'pcode.hrb'
 				nL := ProcLine( n )
+				
 				lReview := .t.
 			endif
 		
@@ -174,7 +180,9 @@ function MH_ErrorInfo( oError, cCode, cCodePP )
 	end
 	
 	if lReview .and. nL > 0 
-	
+		
+		hError[ 'line' ] := nL 
+		
 		for n := 1  to len( aTagLine ) 
 			
 			if aTagLine[n][1] < nL 
@@ -183,14 +191,9 @@ function MH_ErrorInfo( oError, cCode, cCodePP )
 			endif		
 		
 		next 	
-	
+
 	endif 
-	
-	
-	
-	//? hError, '<hr>'
-	//	? oError, '<hr>'
-	//MH_ErrorShow( hError )	 
+
    
 retu hError 
 
@@ -223,6 +226,7 @@ function MH_ErrorShow( hError )
 				</tr>	
 	ENDTEXT 
 
+	cHtml += MC_Html_Row( 'Date', hError[ 'date' ] + ' ' + hError[ 'time' ] )	
 	cHtml += MC_Html_Row( 'Description', hError[ 'description' ] )	
 	
 	if !empty( hError[ 'operation' ] )
@@ -396,7 +400,8 @@ function MH_Css()
 			.mc_code_source {
 				padding: 5px;
 				font-family: monospace;
-				font-size: 12px;						
+				font-size: 12px;
+				background-color: #e0e0e0;				
 			}
 			
 			.mc_line_error {

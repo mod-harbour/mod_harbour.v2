@@ -1,13 +1,13 @@
 function main()
 
-	MH_ErrorBlock( {|oError| MyError( oError ) } )
+	MH_ErrorBlock( {|hError| MyError( hError ) } )
 	
 	? a + 5
 	
 retu nil 
 
-function MyError( oError )
+function MyError( hError )
 
-	? oError		
+	? hError
 	
 retu nil 

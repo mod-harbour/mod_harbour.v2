@@ -1,23 +1,16 @@
 function main()
 
-	MH_ErrorBlock( {|oError, cCode| MyErrorPlus( oError, cCode ) } )
+	MH_ErrorBlock( {|hError| MyErrorPlus( hError ) } )
 	
 	? a + 5
 	
 retu nil 
 
-function MyErrorPlus( oError, cCode )
+function MyErrorPlus( hError )
 
-	local hInfo := {=>}
 	local cHtml := ''
-    local n, aPair 
-   
-    hInfo[ 'Error' ] := oError:description   
+    local n, aPair    
 
-	if ! Empty( oError:operation )
-		hInfo[ 'Operation' ] := oError:operation 
-	endif   
-	
 	BLOCKS TO cHtml 
 
 		<style>
@@ -35,7 +28,7 @@ function MyErrorPlus( oError, cCode )
 				border-bottom: 1px solid #ddd;
 			}			
 			th {
-			  background-color: #095fa8;
+			  background-color: #4caf50;
 			  color: white;
 			}	
 			
@@ -62,7 +55,7 @@ function MyErrorPlus( oError, cCode )
 			
 			.description {
 				font-weight: bold;
-				background-color: #8da5b1;
+				background-color: white;
 			}
 			
 			.value {				
@@ -82,7 +75,7 @@ function MyErrorPlus( oError, cCode )
 		
 		<div class="title">
 			<img class="logo" src="images/modharbour_mini.png"></img>
-			<p class="title_error">Error System</p>			
+			<p class="title_error">My Error System</p>			
 		</div>
 		
 		<hr>		
@@ -96,25 +89,16 @@ function MyErrorPlus( oError, cCode )
 	ENDTEXT 
 	
 	
-	for n := 1 to len( hInfo )
-	
-		aPair := HB_HPairAt( hInfo, n)
-		
-		BLOCKS TO cHtml PARAMS aPair  
-		
-			<tr>
-				<td class="description" >{{ aPair[1] }}</td>
-				<td class="value">{{ aPair[2] }}</td>
-			</tr>
-		
-		ENDTEXT 
-		
-	next 
+	cHtml += '<tr><td class="description">Description</td><td class="value">' + hError[ 'description' ] + '</td><tr>'
+	cHtml += '<tr><td class="description">Operation</td><td class="value">' + hError[ 'operation' ] + '</td><tr>'
+
 	
 	BLOCKS TO cHtml 
 
 				</table>
 			</div>		
+			
+			<h3>Send mail to administrator: <a href="mailto:admin@mh.com">admin@mh.net</a></h3>
 		</html>
 		
 	ENDTEXT 	

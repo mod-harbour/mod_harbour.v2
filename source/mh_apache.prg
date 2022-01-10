@@ -274,7 +274,8 @@ FUNCTION MH_ErrorSys( oError, cCode, cCodePP )
 	
 	IF ValType( ts_bError ) == 'B'
 
-		Eval( ts_bError, oError, cCode, cCodePP )
+		//Eval( ts_bError, oError, cCode, cCodePP )
+		Eval( ts_bError, hError )
 
 	ELSE
 
