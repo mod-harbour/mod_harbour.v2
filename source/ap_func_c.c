@@ -252,3 +252,37 @@ HB_FUNC( AP_HEADERSOUTCOUNT )
 {
    hb_retnl( apr_table_elts( GetRequestRec()->headers_out )->nelts );
 }
+
+//----------------------------------------------------------------//
+
+HB_FUNC( AP_COOKIE_READ )
+{
+   const char *val = NULL;
+   apr_status_t rs;
+   request_rec * r = GetRequestRec();
+   rs = ap_cookie_read( r, hb_parc( 1 ), &val, hb_parldef( 2, 0 ) );
+   if ( APR_SUCCESS != rs ) 
+      hb_retc( val );
+   else 
+      hb_retl( 0 );
+}
+
+//----------------------------------------------------------------//
+
+HB_FUNC( AP_COOKIE_WRITE )
+{
+   request_rec * r = GetRequestRec();
+   ap_cookie_write( r, hb_parc( 1 ), hb_parc( 2 ), NULL, 60, r->headers_out, r->err_headers_out, NULL );
+}
+
+//----------------------------------------------------------------//
+
+HB_FUNC( AP_COOKIE_CHECK_STRING )
+{
+   apr_status_t rs;
+   rs = ap_cookie_check_string( hb_parc( 1 ) );
+   if ( APR_SUCCESS != rs ) 
+      hb_retl( 0 );
+   else 
+      hb_retl( 1 );
+}
