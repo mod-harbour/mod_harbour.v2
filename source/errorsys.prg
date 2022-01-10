@@ -11,7 +11,6 @@ function MH_ErrorInfo( oError, cCode, cCodePP )
 	local aTagLine 	:= {}
     local n, aLines, nLine, cLine, nPos, nErrorLine, nL  
 	local hError	:= {=>}
-	
 
 	
 	//	Init hError info 
@@ -131,7 +130,7 @@ function MH_ErrorInfo( oError, cCode, cCodePP )
 				endif		
 			
 			next 
-			
+	
 		else 
 		
 		/*
@@ -178,7 +177,7 @@ function MH_ErrorInfo( oError, cCode, cCodePP )
 		endif
 		
 	end
-	
+
 	if lReview .and. nL > 0 
 		
 		hError[ 'line' ] := nL 

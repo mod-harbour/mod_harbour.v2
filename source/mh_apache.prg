@@ -23,6 +23,11 @@ THREAD STATIC ts_aFiles
 THREAD STATIC ts_bError
 THREAD STATIC ts_t_hTimer
 
+//	SetEnv Var config.	------------------------
+//	MH_CACHE 	-	Use PcodeCached
+//	--------------------------------------------
+
+
 FUNCTION Main()
 
 
