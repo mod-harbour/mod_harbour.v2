@@ -5,6 +5,7 @@
 
 #include <http_protocol.h>
 #include <apr_pools.h>
+#include <util_cookies.h>
 #include <hbapi.h>
 #include <hbapiitm.h>
 
@@ -251,6 +252,13 @@ HB_FUNC( AP_HEADERSINCOUNT )
 HB_FUNC( AP_HEADERSOUTCOUNT )
 {
    hb_retnl( apr_table_elts( GetRequestRec()->headers_out )->nelts );
+}
+
+//----------------------------------------------------------------//
+HB_FUNC( AP_COOKIE_REMOVE )
+{
+   request_rec * r = GetRequestRec();
+   ap_cookie_remove( r, hb_parc( 1 ),  NULL, r->headers_out, r->err_headers_out, NULL );
 }
 
 //----------------------------------------------------------------//
