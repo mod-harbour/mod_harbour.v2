@@ -77,10 +77,8 @@ void mh_EndMutex()
 
 request_rec *GetRequestRec(void)
 {
-   hb_vmPushSymbol(hb_dynsymGetSymbol("GETREQUESTREC"));
-   hb_vmPushNil();
-   hb_vmFunction(0);
-   return hb_parptr(-1);
+   HB_FUNC_EXEC( GETREQUESTREC );
+   return hb_parptr( -1 );
 }
 
 //----------------------------------------------------------------//
