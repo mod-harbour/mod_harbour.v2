@@ -64,6 +64,18 @@ RETURN uRet
 
 FUNCTION MH_Execute( cCode, ... )
 
+	local oHrb := MH_Compile( cCode, ... )	
+
+   IF ! Empty( oHrb )
+
+      uRet := hb_hrbDo( hb_hrbLoad( HB_HRB_BIND_OVERLOAD, oHrb ), ... )
+
+   ENDIF	
+
+retu uRet 
+
+FUNCTION MH_Compile( cCode, ... )
+
    LOCAL oHrb, pCode, uRet
    LOCAL cOs   		:= OS()
    LOCAL cHBHeader  := ''
@@ -85,15 +97,7 @@ FUNCTION MH_Execute( cCode, ... )
 	oHrb = HB_CompileFromBuf( cCodePP, .T., "-n", "-q2", "-I" + cHBheader, ;
 			"-I" + hb_GetEnv( "HB_INCLUDE" ), hb_GetEnv( "HB_USER_PRGFLAGS" ) )	
 
-
-
-   IF ! Empty( oHrb )
-
-      uRet := hb_hrbDo( hb_hrbLoad( HB_HRB_BIND_OVERLOAD, oHrb ), ... )
-
-   ENDIF
-
-RETURN uRet
+RETURN oHrb
 
 
 // ----------------------------------------------------------------//

@@ -39,7 +39,7 @@ RETURN NIL
 
 FUNCTION MH_Runner( r )
 
-   LOCAL cFileName, cFilePath, pThreadWait, tFilename, cCode, oHrb  
+   LOCAL cFileName, cFilePath, pThreadWait, tFilename, cCode, cCodePP, oHrb  
    LOCAL lCache, nTimeOut
    LOCAL disablecache := .F.
    
@@ -70,7 +70,7 @@ FUNCTION MH_Runner( r )
 
          hb_hrbDo( hb_hrbLoad( 2, cFileName ), ap_Args() ) 
 
-      ELSE	  
+      ELSE	//	case prg   
 	  
 		  cFilePath := SubStr( cFileName, 1, RAt( "/", cFileName ) + RAt( "\", cFileName ) - 1 ) 
  
@@ -86,13 +86,9 @@ FUNCTION MH_Runner( r )
 				  hb_FGetDateTime( cFilename, @tFilename )
 			   ENDIF
 
-			   IF ( iif( hb_HHasKey( MH_PcodeCached(), cFilename ), tFilename != MH_PcodeCached()[ cFilename ][ 2 ], .T. ) .OR. disablecache )
-
-				  disablecache := mh_ReplaceBlocks( @cCode, "{%", "%}" )
-				  cCodePP := __pp_Process( hPP, cCode )
-
-				  oHrb = HB_CompileFromBuf( cCodePP, .T., "-n", "-q2", "-I" + cHBheader, ;
-					 "-I" + hb_GetEnv( "HB_INCLUDE" ), hb_GetEnv( "HB_USER_PRGFLAGS" ) )
+			   IF ( iif( hb_HHasKey( MH_PcodeCached(), cFilename ), tFilename != MH_PcodeCached()[ cFilename ][ 2 ], .T. ) .OR. disablecache )			   
+			   
+				  oHrb := mh_Compile( cCode )
 
 				  IF !disablecache
 
