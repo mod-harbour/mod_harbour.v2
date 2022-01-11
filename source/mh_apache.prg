@@ -25,6 +25,7 @@ THREAD STATIC ts_t_hTimer
 
 //	SetEnv Var config.	------------------------
 //	MH_CACHE 	-	Use PcodeCached
+//	MH_TIMEOUT	-	Timeout for thread
 //	--------------------------------------------
 
 
@@ -38,22 +39,28 @@ RETURN NIL
 
 FUNCTION MH_Runner( r )
 
-   LOCAL cFileName
-   LOCAL pThreadWait
-   LOCAL oHrb
+   LOCAL cFileName, cFilePath, pThreadWait, tFilename, cCode, oHrb  
+   LOCAL lCache, nTimeOut
+   LOCAL disablecache := .F.
+   
 
    // Init thread statics vars
 
    ts_request_rec	:= r   		// Request from Apache
    ts_cBuffer_Out	:= ''   	// Buffer for text out
-   ts_hHrbs    	:= { => } 	// Internal hash of loaded hrbs
-   ts_aFiles   	:= {}   	// Internal array of loaded name files
+   ts_hHrbs    		:= { => } 	// Internal hash of loaded hrbs
+   ts_aFiles   		:= {}   	// Internal array of loaded name files      
 
+   // Init dependent vars of request 
+   
+   lCache	:= AP_GetEnv( 'MH_CACHE' )	== '1' .or. lower( AP_GetEnv( 'MH_CACHE' ) ) == 'yes'  
+   nTimeOut	:= Max( Val( AP_GetEnv( 'MH_TIMEOUT' ) ), 15 )   
+   
    // ------------------------
    
    ErrorBlock( {| oError | MH_ErrorSys( oError ), Break( oError ) } )
 
-   ts_t_hTimer = hb_idleAdd( {|| MH_RequestMaxTime( hb_threadSelf(), 15 ) }  )
+   ts_t_hTimer = hb_idleAdd( {|| MH_RequestMaxTime( hb_threadSelf(), nTimeOut ) }  )
 
    cFileName = ap_FileName()  
 
@@ -63,16 +70,64 @@ FUNCTION MH_Runner( r )
 
          hb_hrbDo( hb_hrbLoad( 2, cFileName ), ap_Args() ) 
 
-      ELSE
+      ELSE	  
+	  
+		  cFilePath := SubStr( cFileName, 1, RAt( "/", cFileName ) + RAt( "\", cFileName ) - 1 ) 
+ 
+		  hb_SetEnv( "PRGPATH", cFilePath )
+		  
+		  cCode := MemoRead( cFileName )	  	  
 
-         hb_SetEnv( "PRGPATH", ;
-            SubStr( cFileName, 1, RAt( "/", cFileName ) + RAt( "\", cFileName ) - 1 ) )
-         cCode := MemoRead( cFileName )
+		  IF lCache 	
 
-         MH_Execute( cCode, ap_Args() ) 
+			   IF 'function __Inline(' $ cCode
+				  disablecache = .T.
+			   ELSE
+				  hb_FGetDateTime( cFilename, @tFilename )
+			   ENDIF
 
-      ENDIF
+			   IF ( iif( hb_HHasKey( MH_PcodeCached(), cFilename ), tFilename != MH_PcodeCached()[ cFilename ][ 2 ], .T. ) .OR. disablecache )
 
+				  disablecache := mh_ReplaceBlocks( @cCode, "{%", "%}" )
+				  cCodePP := __pp_Process( hPP, cCode )
+
+				  oHrb = HB_CompileFromBuf( cCodePP, .T., "-n", "-q2", "-I" + cHBheader, ;
+					 "-I" + hb_GetEnv( "HB_INCLUDE" ), hb_GetEnv( "HB_USER_PRGFLAGS" ) )
+
+				  IF !disablecache
+
+					 WHILE !hb_mutexLock( MH_Mutex() )
+					 ENDDO
+
+					 MH_PcodeCached()[ cFilename ] = { oHrb, tFilename }
+					 hb_mutexUnlock( MH_Mutex() )
+
+				  ENDIF
+
+				  ts_lcached := .F.
+				  
+			   ELSE
+
+				  oHrb = MH_PcodeCached()[ cFilename ][ 1 ]
+				  ts_lcached := .T.
+
+			   ENDIF
+
+			   IF ! Empty( oHrb )
+
+				  uRet := hb_hrbDo( hb_hrbLoad( HB_HRB_BIND_OVERLOAD, oHrb ), ap_Args()  )
+
+			   ENDIF		   
+
+
+		  ELSE   
+
+			 MH_Execute( cCode, ap_Args() ) 
+
+		  ENDIF
+		  
+	  ENDIF
+	  
    ELSE
 
       mh_ExitStatus( 404 )

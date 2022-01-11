@@ -50,25 +50,24 @@ FUNCTION MH_AddPPRules()
 RETURN NIL
 
 
-FUNCTION MH_ExecuteHrb( oHrb, cArgs )
+FUNCTION MH_ExecuteHrb( oHrb, ... )
+
+   LOCAL uRet
 
    ErrorBlock( {| oError | ap_Echo( mh_ErrorSys( oError ) ), Break( oError ) } )   
+   
+   uRet := hb_hrbDo( hb_hrbLoad( HB_HRB_BIND_OVERLOAD, oHrb ), ... )
 
-RETURN hb_hrbDo( oHrb, cArgs )
+RETURN uRet
 
 // ----------------------------------------------------------------//
 
 FUNCTION MH_Execute( cCode, ... )
 
-   LOCAL oHrb, pCode, uRet, lReplaced := .T.
-   LOCAL cOs   := OS()
+   LOCAL oHrb, pCode, uRet
+   LOCAL cOs   		:= OS()
    LOCAL cHBHeader  := ''
    LOCAL cCodePP	:= ''
-   
-   LOCAL disablecache := .F.
-   LOCAL tFilename
-   LOCAL cFilename := ap_FileName()
-   LOCAL lCache		:= AP_GetEnv( 'MH_CACHE' ) == '1' .or. lower( AP_GetEnv( 'MH_CACHE' ) ) == 'yes'
 
    DO CASE
    CASE "Windows" $ cOs  ; cHBHeader := "c:\harbour\include"
@@ -79,50 +78,14 @@ FUNCTION MH_Execute( cCode, ... )
 
    mh_AddPPRules()   
    
-   IF lCache 
-   
-	   IF 'function __Inline(' $ cCode
-		  disablecache = .T.
-	   ELSE
-		  hb_FGetDateTime( cFilename, @tFilename )
-	   ENDIF
+	mh_ReplaceBlocks( @cCode, "{%", "%}" )
+	
+	cCodePP := __pp_Process( hPP, cCode )
 
-	   IF ( iif( hb_HHasKey( MH_PcodeCached(), cFilename ), tFilename != MH_PcodeCached()[ cFilename ][ 2 ], .T. ) .OR. disablecache )
+	oHrb = HB_CompileFromBuf( cCodePP, .T., "-n", "-q2", "-I" + cHBheader, ;
+			"-I" + hb_GetEnv( "HB_INCLUDE" ), hb_GetEnv( "HB_USER_PRGFLAGS" ) )	
 
-		  disablecache := mh_ReplaceBlocks( @cCode, "{%", "%}" )
-		  cCodePP := __pp_Process( hPP, cCode )
 
-		  oHrb = HB_CompileFromBuf( cCodePP, .T., "-n", "-q2", "-I" + cHBheader, ;
-			 "-I" + hb_GetEnv( "HB_INCLUDE" ), hb_GetEnv( "HB_USER_PRGFLAGS" ) )
-
-		  IF !disablecache
-
-			 WHILE !hb_mutexLock( MH_Mutex() )
-			 ENDDO
-
-			 MH_PcodeCached()[ cFilename ] = { oHrb, tFilename }
-			 hb_mutexUnlock( MH_Mutex() )
-
-		  ENDIF
-
-		  ts_lcached := .F.
-
-	   ELSE
-
-		  oHrb = MH_PcodeCached()[ cFilename ][ 1 ]
-		  ts_lcached := .T.
-
-	   ENDIF
-   
-   ELSE 
-   
-		mh_ReplaceBlocks( @cCode, "{%", "%}" )
-		cCodePP := __pp_Process( hPP, cCode )
-
-		oHrb = HB_CompileFromBuf( cCodePP, .T., "-n", "-q2", "-I" + cHBheader, ;
-				"-I" + hb_GetEnv( "HB_INCLUDE" ), hb_GetEnv( "HB_USER_PRGFLAGS" ) )	
-   
-   ENDIF
 
    IF ! Empty( oHrb )
 
