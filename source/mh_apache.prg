@@ -80,17 +80,13 @@ FUNCTION MH_Runner( r )
 
 		  IF lCache 	
 
-			   IF 'function __Inline(' $ cCode
-				  disablecache = .T.
-			   ELSE
-				  hb_FGetDateTime( cFilename, @tFilename )
-			   ENDIF
+			   hb_FGetDateTime( cFilename, @tFilename )			   
 
-			   IF ( iif( hb_HHasKey( MH_PcodeCached(), cFilename ), tFilename != MH_PcodeCached()[ cFilename ][ 2 ], .T. ) .OR. disablecache )			   
+			   IF ( iif( hb_HHasKey( MH_PcodeCached(), cFilename ), tFilename > MH_PcodeCached()[ cFilename ][ 2 ], .T. ) )			   
 			   
 				  oHrb := mh_Compile( cCode )
 
-				  IF !disablecache
+				  IF ! Empty( oHrb )
 
 					 WHILE !hb_mutexLock( MH_Mutex() )
 					 ENDDO
@@ -99,13 +95,10 @@ FUNCTION MH_Runner( r )
 					 hb_mutexUnlock( MH_Mutex() )
 
 				  ENDIF
-
-				  ts_lcached := .F.
 				  
 			   ELSE
 
 				  oHrb = MH_PcodeCached()[ cFilename ][ 1 ]
-				  ts_lcached := .T.
 
 			   ENDIF
 
