@@ -15,7 +15,7 @@ function error4()
 			
 			a ->  {{ a 	}} 
 			
-			<br>Ultima Linea
+			Ultima Linea
 
 		ENDTEXT 
 		
@@ -23,15 +23,15 @@ function error4()
 
 		BLOCKS TO cHtml PARAMS a
 			Una linea
-			<br>Dos linees
-			<br>Tres linees
+			Dos linees
+			Tres linees
 			
-			<br> Test a->  {{ a }} 	
-			<br> Test ab->  {{ a }} 	
+			Test a->  {{ a }} 	
+			Test abc->  {{ a }} 	//	change a for abc 
 			
-			<br>Antepenultima Linea
-			<br>Penultima Linea
-			<br>Ultima Linea
+			Antepenultima Linea
+			Penultima Linea
+			Ultima Linea
 
 		ENDTEXT 		
 		
@@ -39,10 +39,11 @@ function error4()
 	
 	? 'Fin a las ' , time()
 	
+//	Error tests...	
+? a()
 //u := date(   
 //u := xxxx()				//	No pillo linea, si error
 //u := substr( a )
-? a()
 //? 5/0
 //use tttt
 //a+

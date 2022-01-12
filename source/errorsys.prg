@@ -232,13 +232,16 @@ function MH_ErrorShow( hError )
 		cHtml += MC_Html_Row( 'Operation', hError[ 'operation' ] )			
 	endif
 	
-	cHtml += MC_Html_Row( 'Line', hError[ 'line' ] )					
+	
+	if !empty( hError[ 'line' ] )
+		cHtml += MC_Html_Row( 'Line', hError[ 'line' ] )					
+	endif
 	
 	if !empty( hError[ 'filename' ] )
 		cHtml += MC_Html_Row( 'Filename', hError[ 'filename' ] )							
 	endif 
 	
-	cHtml += MC_Html_Row( 'System', hError[ 'subsystem' ] + '/' + hError[ 'subcode' ] )							
+	cHtml += MC_Html_Row( 'System', hError[ 'subsystem' ] + if( !empty(hError[ 'subcode' ]), '/' + hError[ 'subcode' ], '') )							
 
 
 	if !empty( hError[ 'args' ] )		
@@ -273,39 +276,37 @@ function MH_ErrorShow( hError )
 	
 	do case
 	
-		case hError[ 'type' ] == 'block' 
-		
+		case hError[ 'type' ] == 'block' 					
+
 			cTitle 	:= 'Code Block'
-			
-			cInfo 	:= '<div class="mc_block_error"><b>Error => </b><span class="mc_line_error">' + hError[ 'block_error' ] + '</span></div>'
-			cInfo 	+= hError[ 'block_code' ] + '<br>'
-		
+			cInfo 	:= '<div class="mc_block_error"><b>Error => </b><span class="mc_line_error">' + hError[ 'block_error' ] + '</span></div>'								
+			aLines 	:= hb_ATokens( hError[ 'block_code' ], chr(10) )
 	
-		case hError[ 'type' ] == '' 
-		
-			aLines 	:= hb_ATokens( hError[ 'code' ], chr(10) )
+		case hError[ 'type' ] == '' 		
 
 			cTitle 	:= 'Code'
 			cInfo 	:= ''
+			aLines 	:= hb_ATokens( hError[ 'code' ], chr(10) )
 			
-			for n = 1 to Len( aLines )
+	endcase	
 
-				cLine := aLines[ n ] 
-				cLine := hb_HtmlEncode( cLine )
-				cLine := StrTran( cLine, chr(9), '&nbsp;&nbsp;&nbsp;' )			  
-			  
-			  
-			  if hError[ 'line' ] > 0 .and. hError[ 'line' ] == n
-				cInfo += '<b>' + StrZero( n, 4 ) + ' <span class="mc_line_error">' + cLine + '</span></b>'
-			  else			
-				cInfo += StrZero( n, 4 ) + ' ' + cLine 
-			  endif 
-			  
-			  cInfo += '<br>'
+	
+	for n = 1 to Len( aLines )
 
-			next										
-			
-	endcase		
+		cLine := aLines[ n ] 
+		cLine := hb_HtmlEncode( cLine )
+		cLine := StrTran( cLine, chr(9), '&nbsp;&nbsp;&nbsp;' )			  
+	  
+	  
+	  if hError[ 'line' ] > 0 .and. hError[ 'line' ] == n
+		cInfo += '<b>' + StrZero( n, 4 ) + ' <span class="mc_line_error">' + cLine + '</span></b>'
+	  else			
+		cInfo += StrZero( n, 4 ) + ' ' + cLine 
+	  endif 
+	  
+	  cInfo += '<br>'
+
+	next		
 	
 	
 	cHtml += '<div class="mc_container_code">'
@@ -464,88 +465,3 @@ function MH_Css()
 	ENDTEXT 
 	
 retu cHtml
-
-
-function MH_ErrorShowOk( hError )
-
-	local cHtml := ''
-	local n, aLines, cLine 
-
-	cHtml += "<h3>Error System</h3><hr>"
-	cHtml += "Description: " + hError[ 'description' ] + "<br>"
-	
-	if !empty( hError[ 'operation' ] )
-		cHtml += "Operation: " + hError[ 'operation' ] + "<br>"
-	endif
-	
-	cHtml += "Line: " + str(hError[ 'line' ]) + "<br>"
-	cHtml += "Tag: " + mh_valtochar( hError[ 'tag' ]) + "<br>"
-	
-	if !empty( hError[ 'filename' ] )
-		cHtml += "Filename: " + hError[ 'filename' ] + '<br>' 
-	endif 
-	
-	cHtml += "System: " + hError[ 'subsystem' ] + '/' + hError[ 'subcode' ] + '<br>' 
-	
-	if !empty( hError[ 'args' ] )
-	
-		cHtml += '<br><b>Arguments</b></br>'
-	
-      for n = 1 to Len( hError[ 'args' ] )
-          cHtml += "[" + Str( n, 4 ) + "] = " + ValType( hError[ 'args' ][ n ] ) + ;
-                   "   " + MH_ValToChar( hError[ 'args' ][ n ] ) + ;
-                   If( ValType( hError[ 'args' ][ n ] ) == "A", " Len: " + ;
-                   AllTrim( Str( Len( hError[ 'args' ][ n ] ) ) ), "" ) + "<br>"
-      next	
-	  
-	endif 
-	
-	if !empty( hError[ 'stack' ] )
-	
-		cHtml += '<br><b>Stack</b></br>'
-	
-      for n = 1 to Len( hError[ 'stack' ] )
-          cHtml += hError[ 'stack' ][n] + '<br>'
-      next	
-	  
-	endif 	
-	
-	do case
-	
-		case hError[ 'type' ] == 'block' 
-		
-			cHtml += '<br><b>Type Block</b><br>'
-			
-			cHtml += 'Error => ' + hError[ 'block_error' ] + '<br>'
-			cHtml += hError[ 'block_code' ] + '<br>'
-	
-		case hError[ 'type' ] == '' 
-		
-			aLines 	:= hb_ATokens( hError[ 'code' ], chr(10) )
-
-			cHtml += '<div><code>'
-			
-			for n = 1 to Len( aLines )
-
-			  cLine := aLines[ n ] 
-				cLine := hb_HtmlEncode( cLine )
-				cLine := StrTran( cLine, chr(9), '&nbsp;&nbsp;&nbsp;' )			  
-			  //cLine := strtran( cLine, '<br>', '&lt;br&gt;' )
-			  
-			  if hError[ 'line' ] > 0 .and. hError[ 'line' ] == n
-				cHtml += '<b>' + StrZero( n, 4 ) + ' <span style="color:red;">' + cLine + '</span></b>'
-			  else			
-				cHtml += StrZero( n, 4 ) + ' ' + cLine 
-			  endif 
-			  
-			  cHtml += '<br>'
-
-			next				
-			
-			cHtml += '</code></div>'
-		
-	endcase	
-
-	?? cHtml 
-
-retu nil
