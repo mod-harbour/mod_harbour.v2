@@ -22,17 +22,19 @@ THREAD STATIC ts_hHrbs
 THREAD STATIC ts_aFiles
 THREAD STATIC ts_bError
 THREAD STATIC ts_t_hTimer
+THREAD STATIC ts_hConfig 
 
 //	SetEnv Var config.	----------------------------------------
-//	MH_CACHE 	-	Use PcodeCached
-//	MH_TIMEOUT	-	Timeout for thread
-//	MH_PATH_LOG - 	Default HB_GetEnv( 'PRGPATH' ) + '/log.txt'
+//	MH_CACHE 		-	Use PcodeCached
+//	MH_TIMEOUT		-	Timeout for thread
+//	MH_PATH_LOG 	- 	Default HB_GetEnv( 'PRGPATH' ) + '/log.txt'
+//  MH_INITPROCESS 	-	Init modules at begin of app
 //	------------------------------------------------------------
 
 
 FUNCTION Main()
 
-
+	
 
 RETURN NIL
 
@@ -40,8 +42,7 @@ RETURN NIL
 
 FUNCTION MH_Runner( r )
 
-   LOCAL cFileName, cFilePath, pThreadWait, tFilename, cCode, cCodePP, oHrb  
-   LOCAL lCache, nTimeOut
+   LOCAL cFileName, cFilePath, pThreadWait, tFilename, cCode, cCodePP, oHrb     
    LOCAL disablecache := .F.
    
 
@@ -54,18 +55,32 @@ FUNCTION MH_Runner( r )
 
    // Init dependent vars of request 
    
-   lCache	:= AP_GetEnv( 'MH_CACHE' )	== '1' .or. lower( AP_GetEnv( 'MH_CACHE' ) ) == 'yes'  
-   nTimeOut	:= Max( Val( AP_GetEnv( 'MH_TIMEOUT' ) ), 15 )   
+   ts_hConfig 		:= { => }
    
-   // ------------------------
+   ts_hConfig[ 'cache' ]	:= AP_GetEnv( 'MH_CACHE' )	== '1' .or. lower( AP_GetEnv( 'MH_CACHE' ) ) == 'yes'  
+   ts_hConfig[ 'timeout' ]	:= Max( Val( AP_GetEnv( 'MH_TIMEOUT' ) ), 15 )   
+   ts_hConfig[ 'modules' ]	:= AP_GetEnv( 'MH_INITPROCESS' ) 
+   
+   // ------------------------   
    
    ErrorBlock( {| oError | MH_ErrorSys( oError ), Break( oError ) } )
 
-   ts_t_hTimer = hb_idleAdd( {|| MH_RequestMaxTime( hb_threadSelf(), nTimeOut ) }  )
+   ts_t_hTimer = hb_idleAdd( {|| MH_RequestMaxTime( hb_threadSelf(), ts_hConfig[ 'timeout' ] ) }  )
 
    cFileName = ap_FileName()  
 
+
    IF File( cFileName )
+   
+	  cFilePath := SubStr( cFileName, 1, RAt( "/", cFileName ) + RAt( "\", cFileName ) - 1 ) 
+
+	  hb_SetEnv( "PRGPATH", cFilePath )
+	  
+	   //	InitApp
+	   
+			mh_InitProcess()
+		  
+	   // ------------------------	  	  	  	  	  
 
       IF Lower( Right( cFileName, 4 ) ) == ".hrb"
 
@@ -73,13 +88,10 @@ FUNCTION MH_Runner( r )
 
       ELSE	//	case prg   
 	  
-		  cFilePath := SubStr( cFileName, 1, RAt( "/", cFileName ) + RAt( "\", cFileName ) - 1 ) 
- 
-		  hb_SetEnv( "PRGPATH", cFilePath )
 		  
 		  cCode := MemoRead( cFileName )	  	  
 
-		  IF lCache 	
+		  IF ts_hConfig[ 'cache' ] 	
 
 			   hb_FGetDateTime( cFilename, @tFilename )			   
 
@@ -229,7 +241,7 @@ FUNCTION MH_LoadHrb( cHrbFile_or_oHRB )
          ENDDO
 		 
          IF ! hb_HHasKey( ts_hHrbs, cHrbFile_or_oHRB )
-            ts_hHrbs[ cHrbFile_or_oHRB ] := hb_hrbLoad( 2, cFile )
+            ts_hHrbs[ cHrbFile_or_oHRB ] := hb_hrbLoad( HB_HRB_BIND_OVERLOAD, cFile )
          ENDIF
 		 
          hb_mutexUnlock( MH_Mutex() )
@@ -324,13 +336,10 @@ FUNCTION MH_ErrorSys( oError, cCode, cCodePP )
 	
 	IF ValType( ts_bError ) == 'B'
 
-		//Eval( ts_bError, oError, cCode, cCodePP )
 		Eval( ts_bError, hError )
 
 	ELSE
 
-      //MH_GetErrorInfo( oError, cCode )
-      //MH_ErrorSys( oError, cCode, cCodePP )
 		MH_ErrorShow( hError )
 
 	ENDIF
@@ -350,6 +359,7 @@ RETU NIL
 FUNCTION MH_ErrorBlock( bBlockError )
 
    ts_bError := bBlockError
+   
 RETU NIL
 
 // ----------------------------------------------------------------//
@@ -366,3 +376,66 @@ FUNCTION MH_DoError( cDescription, cSubsystem )
    Eval( ErrorBlock(), oError )
 
 RETURN NIL
+
+// ----------------------------------------------------------------//
+
+FUNCTION MH_InitProcess()
+
+	local cPath, cPathFile, cFile
+	local aModules 	:= {}	
+	
+	if !empty( ts_hConfig[ 'modules' ] )		
+
+		cPath 		:= HB_GetEnv( 'PRGPATH' )
+		aModules 	:= hb_ATokens( ts_hConfig[ 'modules' ], "," )
+		nLen 		:= len(aModules)
+
+		for n := 1 to nLen
+		
+			cFile := aModules[n]
+			
+			if !empty( cFile ) 			
+			
+				cPathFile := cPath + '/' + cFile 
+				
+				if  file( cPathFile )	
+
+					if ! hb_HHasKey( MH_AppModules(), cFile )									
+					
+						cExt := lower( hb_FNameExt( cFile ) )
+						
+						do case
+						
+							case cExt == '.hrb'																			
+								
+								MH_AppModules()[ cFile ] := hb_hrbLoad( HB_HRB_BIND_OVERLOAD, cPathFile ) 
+								
+							case cExt == '.prg'
+							
+							
+							otherwise													
+							
+						endcase
+						
+					else
+					
+						//	Module loaded !											
+					
+					endif
+					
+				else
+
+					//	Error ? 
+					
+					MH_DoError( "MH_InitProcess() file not found: " + cPathFile  )
+
+				endif	
+			
+			endif 								
+		
+		next 				
+		
+	endif 	
+
+RETU NIL  
+
