@@ -26,6 +26,8 @@
 	#include "..\contrib\hbmzip\hbmzip.hbx"
 	#define __HBEXTERN__HBNETIO__REQUEST
 	#include "..\contrib\hbnetio\hbnetio.hbx"
+	#define __HBEXTERN__HBMISC__REQUEST
+	#include "..\contrib\hbmisc\hbmisc.hbx"	
 #else
 	#define __HBEXTERN__HBHPDF__REQUEST
 	#include "./harbour/contrib/hbhpdf/hbhpdf.hbx"
@@ -43,6 +45,8 @@
 	#include "./harbour/contrib/hbmzip/hbmzip.hbx"
 	#define __HBEXTERN__HBNETIO__REQUEST
 	#include "./harbour/contrib/hbnetio/hbnetio.hbx"
+	#define __HBEXTERN__HBMISC__REQUEST
+	#include "./harbour/contrib/hbmisc/hbmisc.hbx"		
 #endif
 
 

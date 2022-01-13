@@ -58,6 +58,7 @@ source/errorsys.prg
 {allmsvc}hbmemio.hbc
 {allmsvc}hbnetio.hbc
 {allmsvc}hbssl.hbc
+{allmsvc}hbmisc.hbc
 
 {gcc}-dflag=@libs.txt
 {darwin}-dflag=@libs_osx.txt

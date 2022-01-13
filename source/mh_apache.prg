@@ -23,10 +23,11 @@ THREAD STATIC ts_aFiles
 THREAD STATIC ts_bError
 THREAD STATIC ts_t_hTimer
 
-//	SetEnv Var config.	------------------------
+//	SetEnv Var config.	----------------------------------------
 //	MH_CACHE 	-	Use PcodeCached
 //	MH_TIMEOUT	-	Timeout for thread
-//	--------------------------------------------
+//	MH_PATH_LOG - 	Default HB_GetEnv( 'PRGPATH' ) + '/log.txt'
+//	------------------------------------------------------------
 
 
 FUNCTION Main()

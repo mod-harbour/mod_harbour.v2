@@ -1,5 +1,7 @@
 output/win64/*
 output/win32/*
+samples/trace/
+samples/log.txt
 .hbmk
 .history
 .vscode
