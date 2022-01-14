@@ -412,16 +412,26 @@ FUNCTION MH_InitProcess()
 						
 							case cExt == '.hrb'																			
 								
+                        WHILE !hb_mutexLock( MH_Mutex() )
+                        ENDDO
+                                
 								MH_AppModules()[ cFile ] := hb_hrbLoad( HB_HRB_BIND_OVERLOAD, cPathFile ) 
-								
+
+                        hb_mutexUnlock( MH_Mutex() )
+                        
 							case cExt == '.prg'							
 							
 								oHrb := MH_Compile( hb_Memoread( cPathFile ) )	
 
 								IF ! Empty( oHrb )
 
-									MH_AppModules()[ cFile ] := hb_hrbLoad( HB_HRB_BIND_OVERLOAD, oHrb )
+                           WHILE !hb_mutexLock( MH_Mutex() )
+                           ENDDO
+   
+                           MH_AppModules()[ cFile ] := hb_hrbLoad( HB_HRB_BIND_OVERLOAD, oHrb )
 
+                           hb_mutexUnlock( MH_Mutex() )
+                           
 								ENDIF
 
 							case cExt == '.ch'																
