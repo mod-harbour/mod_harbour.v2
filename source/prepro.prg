@@ -162,9 +162,8 @@ FUNCTION MH_ReplaceBlocks( cCode, cStartBlock, cEndBlock, cParams, ... )
 	hb_default( @cEndBlock, "}}" )
 	hb_default( @cParams, "" )   
 
-	mh_stackblock( 'code', cCode )
-   
-   
+	mh_stackblock( 'type', 'block' )      
+	mh_stackblock( 'code', cCode )      
 
 	WHILE ( nStart := At( cStartBlock, cCode ) ) != 0 .AND. ;
          ( nEnd := At( cEndBlock, cCode ) ) != 0
@@ -180,9 +179,7 @@ FUNCTION MH_ReplaceBlocks( cCode, cStartBlock, cEndBlock, cParams, ... )
 		lReplaced = .T.
 	END         
    
-	mh_stackblock()   
-
-   
+	mh_stackblock()      
 
 RETURN If( hb_PIsByRef( 1 ), lReplaced, cCode )
 

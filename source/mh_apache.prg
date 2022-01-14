@@ -390,6 +390,7 @@ FUNCTION MH_InitProcess()
 		aModules 	:= hb_ATokens( ts_hConfig[ 'modules' ], "," )
 		nLen 		:= len(aModules)
 
+		
 		for n := 1 to nLen
 		
 			cFile := aModules[n]
@@ -404,14 +405,22 @@ FUNCTION MH_InitProcess()
 					
 						cExt := lower( hb_FNameExt( cFile ) )
 						
+						
 						do case
 						
 							case cExt == '.hrb'																			
 								
 								MH_AppModules()[ cFile ] := hb_hrbLoad( HB_HRB_BIND_OVERLOAD, cPathFile ) 
 								
-							case cExt == '.prg'
+							case cExt == '.prg'							
 							
+								oHrb := MH_Compile( hb_Memoread( cPathFile ) )	
+
+								IF ! Empty( oHrb )
+
+									MH_AppModules()[ cFile ] := hb_hrbLoad( HB_HRB_BIND_OVERLOAD, oHrb )
+
+								ENDIF									
 							
 							otherwise													
 							
@@ -433,7 +442,7 @@ FUNCTION MH_InitProcess()
 			
 			endif 								
 		
-		next 				
+		next 
 		
 	endif 	
 

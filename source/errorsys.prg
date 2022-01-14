@@ -30,14 +30,22 @@ function MH_ErrorInfo( oError, cCode, cCodePP )
 		hError[ 'block_error' ] := ''
 		hError[ 'code' ]		:= cCode
 		hError[ 'codePP' ]		:= cCodePP
+
 	
 	//	Check error from BLOCKS 
 	
 		if !empty( ts_block )
 		
-			hError[ 'type' ] 		:= 'block'
-			hError[ 'block_code' ] 	:= ts_block[ 'code' ]
-			hError[ 'block_error'] 	:= ts_block[ 'error' ]
+			hError[ 'type' ] 		:= ts_block[ 'type' ]	// 'block'
+			
+			do case	
+				case hError[ 'type' ] == 'block'
+					hError[ 'block_code' ] 	:= ts_block[ 'code' ]
+					hError[ 'block_error'] 	:= ts_block[ 'error' ]
+				
+				case hError[ 'type' ] == 'initprocess'
+					hError[ 'filename' ]	:= ts_block[ 'filename' ]
+			endcase
 			
 		endif 
 			
@@ -203,7 +211,7 @@ function mh_stackblock( cKey, uValue )
 		ts_block := {=>}
 	else
 		ts_block[ cKey ] := uValue 
-	endif
+	endif		
 	
 retu nil 
 
@@ -273,7 +281,6 @@ function MH_ErrorShow( hError )
 	
 	cHtml += '</table></div>'
 	
-	
 	do case
 	
 		case hError[ 'type' ] == 'block' 					
@@ -287,6 +294,12 @@ function MH_ErrorShow( hError )
 			cTitle 	:= 'Code'
 			cInfo 	:= ''
 			aLines 	:= hb_ATokens( hError[ 'code' ], chr(10) )
+			
+		case hError[ 'type' ] == 'initprocess' 					
+
+			cTitle 	:= 'InitProcess'
+			cInfo 	:= '<div class="mc_block_error"><b>Filename => </b><span class="mc_line_error">' + hError[ 'filename' ] + '</span></div>'
+			aLines 	:= {}		
 			
 	endcase	
 
