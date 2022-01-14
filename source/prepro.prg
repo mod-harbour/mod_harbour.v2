@@ -15,6 +15,7 @@ THREAD STATIC hPP
 FUNCTION MH_AddPPRules()
 
    LOCAL cOs := OS()
+   LOCAL n, aPair, cExt 
 
    IF hPP == nil
       hPP = __pp_Init()
@@ -46,6 +47,20 @@ FUNCTION MH_AddPPRules()
    __pp_AddRule( hPP, "#xcommand FINALLY => ALWAYS" )
    __pp_AddRule( hPP, "#xcommand DEFAULT <v1> TO <x1> [, <vn> TO <xn> ] => ;" + ;
       "IF <v1> == NIL ; <v1> := <x1> ; END [; IF <vn> == NIL ; <vn> := <xn> ; END ]" )
+	
+
+	//	InitProcess .ch files
+	
+	for n := 1 to len(MH_AppModules())
+	
+		aPair 	:= HB_HPairAt( MH_AppModules(), n )		
+		cExt 	:= lower( hb_FNameExt( aPair[1] ) )
+
+		if cExt == '.ch' 	
+			__pp_AddRule( hPP, aPair[2] )			
+		endif 
+		
+	next 
 
 RETURN NIL
 

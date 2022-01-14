@@ -1,13 +1,25 @@
 function main()	
+
 	
-	? '<li>InitProcess will load modules =>', AP_GetEnv( 'MH_INITPROCESS' )
+		? 'Modules loaded =>', AP_GetEnv( 'MH_INITPROCESS' )	
+		
 	
-	//	Execute func Today() from module_a
+		? 'Execute Today() from module_a.hrb =>' , Today()		
+		
 	
-	? '<li>Execute Today() from module_a.hrb =>' , Today()		
+		? 'Execute NextWeek() from module_b.hrb =>' , NextWeek()			
 	
-	? '<li>Execute Msg() from msg.prg'
 	
-	Msg( 'Test de module' )
+		? 'Execute Msg() from msg.prg'	
+
+			Msg( 'Test de module' )
+	
+	
+		? 'Execute COMMAND from cmd.ch'	 
+		
+			TITLE 'Hello prepro'
+			LIST  'First'
+			LIST  'Second'
+			LIST  'Third'
 
 retu nil 

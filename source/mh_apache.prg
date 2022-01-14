@@ -25,9 +25,9 @@ THREAD STATIC ts_t_hTimer
 THREAD STATIC ts_hConfig 
 
 //	SetEnv Var config.	----------------------------------------
-//	MH_CACHE 		-	Use PcodeCached
-//	MH_TIMEOUT		-	Timeout for thread
-//	MH_PATH_LOG 	- 	Default HB_GetEnv( 'PRGPATH' ) + '/log.txt'
+//	MH_CACHE 			-	Use PcodeCached
+//	MH_TIMEOUT			-	Timeout for thread
+//	MH_PATH_LOG 		- 	Default HB_GetEnv( 'PRGPATH' ) + '/log.txt'
 //  MH_INITPROCESS 	-	Init modules at begin of app
 //	------------------------------------------------------------
 
@@ -76,11 +76,11 @@ FUNCTION MH_Runner( r )
 
 	  hb_SetEnv( "PRGPATH", cFilePath )
 	  
-	   //	InitApp
+	  //	We can load different modules at the beginning of our program
 	   
 			mh_InitProcess()
 		  
-	   // ------------------------	  	  	  	  	  
+	  // ------------------------	  	  	  	  	  
 
       IF Lower( Right( cFileName, 4 ) ) == ".hrb"
 
@@ -384,12 +384,15 @@ FUNCTION MH_InitProcess()
 	local cPath, cPathFile, cFile
 	local aModules 	:= {}	
 	
+	if !empty( MH_AppModules() )
+		retu nil
+	endif 
+	
 	if !empty( ts_hConfig[ 'modules' ] )		
 
 		cPath 		:= HB_GetEnv( 'PRGPATH' )
 		aModules 	:= hb_ATokens( ts_hConfig[ 'modules' ], "," )
 		nLen 		:= len(aModules)
-
 		
 		for n := 1 to nLen
 		
@@ -403,8 +406,7 @@ FUNCTION MH_InitProcess()
 
 					if ! hb_HHasKey( MH_AppModules(), cFile )									
 					
-						cExt := lower( hb_FNameExt( cFile ) )
-						
+						cExt := lower( hb_FNameExt( cFile ) )						
 						
 						do case
 						
@@ -420,7 +422,11 @@ FUNCTION MH_InitProcess()
 
 									MH_AppModules()[ cFile ] := hb_hrbLoad( HB_HRB_BIND_OVERLOAD, oHrb )
 
-								ENDIF									
+								ENDIF
+
+							case cExt == '.ch'																
+								
+								MH_AppModules()[ cFile ] := hb_memoread( cPathFile )
 							
 							otherwise													
 							
