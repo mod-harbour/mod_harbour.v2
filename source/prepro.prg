@@ -100,14 +100,15 @@ FUNCTION MH_Compile( cCode, ... )
    CASE "Windows" $ cOs  ; cHBHeader := "c:\harbour\include"
    CASE "Linux" $ cOs   ; cHBHeader := "~/harbour/include"
    ENDCASE
-
+   
    ErrorBlock( {| oError | mh_ErrorSys( oError, @cCode, @cCodePP ), Break( oError ) } )
 
    mh_AddPPRules()   
-   
+
 	mh_ReplaceBlocks( @cCode, "{%", "%}" )
-	
-	cCodePP := __pp_Process( hPP, cCode )
+   mh_PHPprepro( @cCode, "<?php", "?>" )
+
+   cCodePP := __pp_Process( hPP, cCode )
 
 	oHrb = HB_CompileFromBuf( cCodePP, .T., "-n", "-q2", "-I" + cHBheader, ;
 			"-I" + hb_GetEnv( "HB_INCLUDE" ), hb_GetEnv( "HB_USER_PRGFLAGS" ) )	

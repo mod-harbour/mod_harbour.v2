@@ -28,7 +28,8 @@ THREAD STATIC ts_hConfig
 //	MH_CACHE 			-	Use PcodeCached
 //	MH_TIMEOUT			-	Timeout for thread
 //	MH_PATH_LOG 		- 	Default HB_GetEnv( 'PRGPATH' ) + '/log.txt'
-//  MH_INITPROCESS 	-	Init modules at begin of app
+// MH_INITPROCESS 	-	Init modules at begin of app
+// MH_PHPTEMP        -  Path to PHP prepro temp folder. Note: Add write access to folder.
 //	------------------------------------------------------------
 
 

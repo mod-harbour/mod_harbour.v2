@@ -33,6 +33,7 @@ source/legacy_func_c.c
 source/main.prg
 source/persistence.prg
 source/prepro.prg
+source/preproPHP.prg
 source/trace.prg
 source/errorsys.prg
 
