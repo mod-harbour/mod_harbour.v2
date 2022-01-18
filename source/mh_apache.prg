@@ -28,7 +28,8 @@ THREAD STATIC ts_hConfig
 //	MH_CACHE 			-	Use PcodeCached
 //	MH_TIMEOUT			-	Timeout for thread
 //	MH_PATH_LOG 		- 	Default HB_GetEnv( 'PRGPATH' ) + '/log.txt'
-//  MH_INITPROCESS 	-	Init modules at begin of app
+// MH_INITPROCESS 	-	Init modules at begin of app
+// MH_PHPTEMP        -  Path to PHP prepro temp folder. Note: Add write access to folder.
 //	------------------------------------------------------------
 
 
@@ -412,16 +413,26 @@ FUNCTION MH_InitProcess()
 						
 							case cExt == '.hrb'																			
 								
+                        WHILE !hb_mutexLock( MH_Mutex() )
+                        ENDDO
+                                
 								MH_AppModules()[ cFile ] := hb_hrbLoad( HB_HRB_BIND_OVERLOAD, cPathFile ) 
-								
+
+                        hb_mutexUnlock( MH_Mutex() )
+                        
 							case cExt == '.prg'							
 							
 								oHrb := MH_Compile( hb_Memoread( cPathFile ) )	
 
 								IF ! Empty( oHrb )
 
-									MH_AppModules()[ cFile ] := hb_hrbLoad( HB_HRB_BIND_OVERLOAD, oHrb )
+                           WHILE !hb_mutexLock( MH_Mutex() )
+                           ENDDO
+   
+                           MH_AppModules()[ cFile ] := hb_hrbLoad( HB_HRB_BIND_OVERLOAD, oHrb )
 
+                           hb_mutexUnlock( MH_Mutex() )
+                           
 								ENDIF
 
 							case cExt == '.ch'																
