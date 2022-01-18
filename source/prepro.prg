@@ -232,8 +232,6 @@ function MH_IsFun( u )
 
 	local nLen := __DynsCount()
 	local h 	:= {}
-	
-   _d( 'ISFUN() => ' + u ) 
 
     for n = nLen to 1 step -1
    
