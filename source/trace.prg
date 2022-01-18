@@ -7,6 +7,8 @@
 #include "FileIO.ch"
 #include "mh_apache.ch"
 
+#define DEPTH_LEVEL	4
+
 //	--------------------------------------------------------- //
 
 function _d( ... )
@@ -17,7 +19,7 @@ retu WAPI_OutputDebugString( MH_Out( 'dbg', ... ) )
 
 function _w( ... )
 
-	?  '<code>' + MH_Out( 'web', ... ) + '</code>'
+	ap_echo(  '<code>' + MH_Out( 'web', ... ) + '</code>' )	
 	
 retu nil
 
@@ -79,11 +81,17 @@ static function MH_Out( cOut, ... )
     local cLine	:= ''
 	local lTime 	:= MH_Log_File()[2]
    	local nParam 	:= PCount()
-	local nI, cBreak, cSep, oError 
+	local nI, cBreak, cSep, oError 	
+	
 
 	DEFAULT cOut := 'web' 
 	
 	do case
+		case cOut == 'dbg' 
+		
+			cBreak := CRLF 
+			cSep 	:= ' ' 		
+			
 		case cOut == 'web' 
 		
 			cBreak := '<br>'
@@ -94,10 +102,6 @@ static function MH_Out( cOut, ... )
 			cBreak := CRLF 
 			cSep 	:= ' ' 
 			
-		case cOut == 'dbg' 
-		
-			cBreak := CRLF 
-			cSep 	:= ' ' 		
 	endcase		
 	
 	for nI := 2 to nParam
@@ -106,7 +110,7 @@ static function MH_Out( cOut, ... )
 			cLine += DToC( date()) + ' ' + time() + ' '		
 		endif 			
 
-		cLine  	+= 'Type (' + valtype( pValue(nI) ) + ') ' + MH_ValTo( cOut, pValue(nI) ) + cBreak
+		cLine  	+= 'Type (' + valtype( pValue(nI) ) + ') ' + MH_ValTo( cOut, pValue(nI) ) + cBreak		
 		
 	next	
 
@@ -137,17 +141,19 @@ retu { cFile, lTime }
 
 //	--------------------------------------------------------- //
 
-static function MH_ValTo( cOut, u, nTab )
+static function MH_ValTo( cOut, u, nTab, nDeep )
 
 	local cType := ValType( u )
-	local cResult
-	local n, nLen, aPair, hValue
+	local cResult := ''
+	local n, nLen, aPair, hValue, oError
+	
+	static _i := 0
 	
 	DEFAULT cOut := 'web' 
 	DEFAULT nTab :=  0
-	
+	DEFAULT nDeep :=  0
+
 	nTab++
-	
 	
 	do case
 		case cType == "C" .or. cType == "M"
@@ -156,16 +162,24 @@ static function MH_ValTo( cOut, u, nTab )
 		case cType == "D"		; cResult = DToC( u )
 		case cType == "L" 		; cResult = If( u, ".T.", ".F." )
 		case cType == "N"		; cResult = AllTrim( Str( u ) )	  
-		case cType == "A"		; cResult := MH_HashArrayTo( cOut, @nTab, u )
-			
+		case cType == "A"		; cResult := MH_ArrayTo( cOut, @nTab, u, @nDeep )							
 		case cType == "O"		
 		
 			hValue		:= MH_ObjToHash(u)		
-			cResult 	:= MH_HashArrayTo( cOut, @nTab, hValue )
+
+			cResult 	:= MH_HashTo( cOut, @nTab, hValue, @nDeep )
+			
+			
+			//cResult 	:= MH_Valtochar( hValue )
 			
 		case cType == "P"   	; cResult := hb_NumToHex( u )  
 		case cType == "S"		; cResult := "(Symbol)"  
-		case cType == "H"		; cResult := MH_HashArrayTo( cOut, @nTab, u )   
+		case cType == "H"		
+
+			
+			cResult := MH_HashTo( cOut, @nTab, u, @nDeep )   
+
+		
 		case cType == "U"		; cResult := "nil"
 		
 		otherwise
@@ -177,15 +191,74 @@ retu cResult
 
 //	--------------------------------------------------------- //
 
-static function MH_HashArrayTo( cOut, nTab, u )	
+static function MH_HashTo( cOut, nTab, u, nDeep )	
 
 	local cResult 	:= ''
-	local cType 	:= valtype( u)
 	local nLen 	:= len( u )	
-	local uValue 
-	local n, aPair, cSep, cBreak 
+	local n, aPair, cSep, cBreak 	, oError
+
+	nDeep++
 	
-	//nTab++
+	if nDeep > DEPTH_LEVEL		
+		retu '<*** Too many levels ***>'
+	endif
+	
+	do case
+		case cOut == 'web' 
+		
+			cBreak	:= '<br>'
+			cSep 	:= '&nbsp;'
+			
+		case cOut == 'log' 
+		
+			cBreak	:= CRLF 
+			cSep 	:= ' ' 
+			
+		otherwise 
+		
+			cBreak	:= CRLF 
+			cSep 	:= ' ' 		
+	endcase		
+
+	if nLen > 0 
+	
+		cResult := '{' + cBreak  
+	
+		for n := 1 to nLen			
+		
+			aPair := HB_HPairAt( u, n )															
+			
+			
+			cResult += Replicate( cSep, nTab * 3 ) + 'Key: ' + aPair[1]  + ' (' + valtype(aPair[2]) + ') => ' + MH_ValTo( cOut, aPair[2], nTab, @nDeep ) + cBreak	
+		
+
+		next 
+		
+		cResult += Replicate( cSep, --nTab * 3 ) + '}'				
+		
+	else 	
+		
+		cResult := '{=>}'						
+	
+	endif
+	
+nDeep--	
+
+retu cResult
+
+//	--------------------------------------------------------- //
+
+static function MH_ArrayTo( cOut, nTab, u, nDeep )	
+
+	local cResult 	:= ''
+	local nLen 	:= len( u )	
+	local n,  cSep, cBreak 	
+
+	nDeep++
+	
+	if nDeep > DEPTH_LEVEL		
+		retu '<*** Too many levels ***>'
+	endif
 	
 	do case
 		case cOut == 'web' 
@@ -210,32 +283,20 @@ static function MH_HashArrayTo( cOut, nTab, u )
 	
 		for n := 1 to nLen			
 
-			do case 
-				case cType == 'H'		
-					
-					aPair := HB_HPairAt( u, n )					
-					
-					cResult += Replicate( cSep, nTab * 3 ) + 'Key: ' + aPair[1]  + ' (' + valtype(aPair[2]) + ') => ' + MH_ValTo( cOut, aPair[2], nTab ) + cBreak
-				
-				case cType == 'A'
-
-					cResult += Replicate( cSep, nTab * 3 ) + 'Type (' + valtype( u[n] ) + ') ' + MH_ValTo( cOut, u[n], nTab ) + cBreak 
-			endcase
+			cResult += Replicate( cSep, nTab * 3 ) + 'Type (' + valtype( u[n] ) + ') ' + MH_ValTo( cOut, u[n], nTab, @nDeep ) + cBreak 
 
 		next 
 		
-		cResult += Replicate( cSep, --nTab * 3 ) + '}'	
+		cResult += Replicate( cSep, --nTab * 3 ) + '}'				
 		
-	else 
-	
-		if cType == 'H'
-			cResult := '{=>}'
-		else 
-			cResult := '{}'
-		endif	
+	else 	
+
+		cResult := '{}'
 	
 	endif
 
+	nDeep--
+	
 retu cResult
 
 //	--------------------------------------------------------- //
@@ -249,7 +310,7 @@ static function MH_ObjToHash( o )
 	
 	try 
 	
-		aDatas 	:= __objGetMsgList( o, .T. )
+		aDatas 		:= __objGetMsgList( o, .T. )
 		aParents 	:= __ClsGetAncestors( o:ClassH )
 	
 		AEval( aParents, { | h, n | aParents[ n ] := __ClassName( h ) } ) 
@@ -267,6 +328,7 @@ static function MH_ObjToHash( o )
 		hObj[ 'error'] := 'Error MH_ObjToHash'		
 		
 	end 
+	
 
 retu hObj
 

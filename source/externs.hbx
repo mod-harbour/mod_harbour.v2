@@ -3560,3 +3560,7 @@ extern MH_MODBUILDDATE
 extern MH_INCLUDE
 extern MH_PCODECACHED
 
+extern _D
+extern _W
+extern _L
+

@@ -62,16 +62,23 @@ FUNCTION MH_AddPPRules()
 		
 	next 
 
-RETURN NIL
+RETURN hPP
 
 
 FUNCTION MH_ExecuteHrb( oHrb, ... )
 
-   LOCAL uRet
+   LOCAL uRet, pSym
 
-   ErrorBlock( {| oError | ap_Echo( mh_ErrorSys( oError ) ), Break( oError ) } )   
+   ErrorBlock( {| oError | ap_Echo( mh_ErrorSys( oError ) ), Break( oError ) } )  
+
+	WHILE !hb_mutexLock( mh_Mutex() )
+	ENDDO
+
+	pSym := hb_hrbLoad( HB_HRB_BIND_OVERLOAD, oHrb )
+	  
+	hb_mutexUnlock( mh_Mutex() )	
    
-   uRet := hb_hrbDo( hb_hrbLoad( HB_HRB_BIND_OVERLOAD, oHrb ), ... )
+   uRet := hb_hrbDo( pSym, ... )
 
 RETURN uRet
 
@@ -80,10 +87,18 @@ RETURN uRet
 FUNCTION MH_Execute( cCode, ... )
 
 	local oHrb := MH_Compile( cCode, ... )	
+	local pSym 
 
    IF ! Empty( oHrb )
+   
+	  WHILE !hb_mutexLock( mh_Mutex() )
+	  ENDDO	  
 
-      uRet := hb_hrbDo( hb_hrbLoad( HB_HRB_BIND_OVERLOAD, oHrb ), ... )
+	  pSym := hb_hrbLoad( HB_HRB_BIND_OVERLOAD, oHrb )
+	  
+	  hb_mutexUnlock( mh_Mutex() )
+
+      uRet := hb_hrbDo( pSym, ... )
 
    ENDIF	
 
@@ -208,5 +223,26 @@ CLASS MH_Template
    DATA cResult
 
 ENDCLASS
+
+// ----------------------------------------------------------------//
+
+
+function MH_IsFun( u )
+
+	local nLen := __DynsCount()
+	local h 	:= {}
+	
+   _d( 'ISFUN() => ' + u ) 
+
+    for n = nLen to 1 step -1
+   
+        if __DynsIsFun( n )
+			Aadd( h, __DynsGetName( n ) )						
+        endif
+
+    next	  
+  
+retu Ascan( h, u ) > 0 
+
 
 // ----------------------------------------------------------------//
