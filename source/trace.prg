@@ -76,7 +76,7 @@ retu .t.
 
 //	--------------------------------------------------------- //
 
-static function MH_Out( cOut, ... )
+function MH_Out( cOut, ... )
 
     local cLine	:= ''
 	local lTime 	:= MH_Log_File()[2]
