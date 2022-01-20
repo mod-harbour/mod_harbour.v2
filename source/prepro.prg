@@ -121,7 +121,7 @@ FUNCTION MH_Compile( cCode, ... )
    mh_AddPPRules()   
 
 	mh_ReplaceBlocks( @cCode, "{%", "%}" )
-   mh_PHPprepro( @cCode, "<?php", "?>" )
+   //mh_PHPprepro( @cCode, "<?php", "?>" )
 
    cCodePP := __pp_Process( hPP, cCode )
 
@@ -189,7 +189,7 @@ FUNCTION MH_ReplaceBlocks( cCode, cStartBlock, cEndBlock, cParams, ... )
 	LOCAL nStart, nEnd, cBlock
 	LOCAL lReplaced := .F.
    
-	hb_default( @cStartBlock, "{{" )
+			
 	hb_default( @cEndBlock, "}}" )
 	hb_default( @cParams, "" )   
 

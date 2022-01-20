@@ -11,6 +11,9 @@
 FUNCTION MH_PHPprepro( cCode, cStartBlock, cEndBlock )
 
    LOCAL nStart, nEnd, cBlock
+   
+   hb_default( @cStartBlock, "<?php" )	//	Tags PHP default
+   hb_default( @cEndBlock, "?>" )
 
    WHILE ( nStart := At( cStartBlock, cCode ) ) != 0 .AND. ;
          ( nEnd := At( cEndBlock, cCode ) ) != 0
@@ -23,7 +26,7 @@ FUNCTION MH_PHPprepro( cCode, cStartBlock, cEndBlock )
 
    END
 
-RETURN
+RETURN cBlock
 
 // ------------------------------------------------------------
 
