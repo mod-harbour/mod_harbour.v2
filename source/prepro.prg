@@ -120,8 +120,7 @@ FUNCTION MH_Compile( cCode, ... )
 
    mh_AddPPRules()   
 
-	mh_ReplaceBlocks( @cCode, "{%", "%}" )
-   //mh_PHPprepro( @cCode, "<?php", "?>" )
+   mh_ReplaceBlocks( @cCode, "{%", "%}" )   
 
    cCodePP := __pp_Process( hPP, cCode )
 
