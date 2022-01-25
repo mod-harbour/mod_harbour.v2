@@ -38,7 +38,8 @@ static const char *harbourV2_mutex_type = "mod_hwapache";
 static PHB_ITEM hHash;
 static PHB_ITEM hPcodeCached;
 static PHB_ITEM hMutex = NULL;
-static PHB_ITEM hAppModules;
+static PHB_ITEM hHashModules;
+static PHB_ITEM hHashConfig;
 
 //----------------------------------------------------------------//
 
@@ -162,9 +163,16 @@ HB_FUNC(MH_MUTEX)
 
 //----------------------------------------------------------------//
 
-HB_FUNC(MH_APPMODULES)
+HB_FUNC(MH_HASHMODULES)
 {
-   hb_itemReturn(hAppModules);
+   hb_itemReturn(hHashModules);
+}
+
+//----------------------------------------------------------------//
+
+HB_FUNC(MH_HASHCONFIG)
+{
+   hb_itemReturn(hHashConfig);
 }
 
 //----------------------------------------------------------------//
@@ -207,7 +215,8 @@ static int harbourV2_post_config(apr_pool_t *pconf, apr_pool_t *plog,
    hHash = hb_hashNew(NULL);
    hPcodeCached = hb_hashNew(NULL);
    hMutex = hb_threadMutexCreate();
-   hAppModules = hb_hashNew(NULL);
+   hHashModules = hb_hashNew(NULL);
+   hHashConfig = hb_hashNew(NULL);
 
    rs = ap_global_mutex_create(&harbourV2_mutex, NULL, harbourV2_mutex_type, NULL,
                                s, pconf, 0);

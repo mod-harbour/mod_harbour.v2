@@ -23,13 +23,16 @@ THREAD STATIC ts_aFiles
 THREAD STATIC ts_bError
 THREAD STATIC ts_t_hTimer
 THREAD STATIC ts_hConfig 
+THREAD STATIC ts_oSession
 
 //	SetEnv Var config.	----------------------------------------
 //	MH_CACHE 			-	Use PcodeCached
 //	MH_TIMEOUT			-	Timeout for thread
-//	MH_PATH_LOG 		- 	Default HB_GetEnv( 'PRGPATH' ) + '/log.txt'
-// MH_INITPROCESS 	-	Init modules at begin of app
-// MH_PHPTEMP        -  Path to PHP prepro temp folder. Note: Add write access to folder.
+//	MH_PATH_LOG 		- 	Default HB_GetEnv( 'PRGPATH' ) 
+//	MH_PATH_SESSION 	- 	Default HB_GetEnv( 'DOCUMENT_ROOT' ) + '/.sessions'
+//	MH_SESSION_SEED	- 	Default Session Seed 
+//	MH_INITPROCESS 	-	Init modules at begin of app
+//	MH_PHPTEMP       	-   Path to PHP prepro temp folder. Note: Add write access to folder.
 //	------------------------------------------------------------
 
 
@@ -51,16 +54,16 @@ FUNCTION MH_Runner( r )
 
    ts_request_rec	:= r   		// Request from Apache
    ts_cBuffer_Out	:= ''   	// Buffer for text out
-   ts_hHrbs    		:= { => } 	// Internal hash of loaded hrbs
-   ts_aFiles   		:= {}   	// Internal array of loaded name files      
+   ts_hHrbs    	:= { => } 	// Internal hash of loaded hrbs
+   ts_aFiles   	:= {}   	// Internal array of loaded name files      
+   ts_oSession		:= nil    	// Internal Object Session
 
    // Init dependent vars of request 
    
-   ts_hConfig 		:= { => }
-   
-   ts_hConfig[ 'cache' ]	:= AP_GetEnv( 'MH_CACHE' )	== '1' .or. lower( AP_GetEnv( 'MH_CACHE' ) ) == 'yes'  
-   ts_hConfig[ 'timeout' ]	:= Max( Val( AP_GetEnv( 'MH_TIMEOUT' ) ), 15 )   
-   ts_hConfig[ 'modules' ]	:= AP_GetEnv( 'MH_INITPROCESS' ) 
+	   ts_hConfig 		:= { => }
+	   
+	   ts_hConfig[ 'cache' ]	:= AP_GetEnv( 'MH_CACHE' )	== '1' .or. lower( AP_GetEnv( 'MH_CACHE' ) ) == 'yes'  
+	   ts_hConfig[ 'timeout' ]	:= Max( Val( AP_GetEnv( 'MH_TIMEOUT' ) ), 15 )      
    
    // ------------------------   
    
@@ -144,6 +147,10 @@ FUNCTION MH_Runner( r )
    // Unload hrbs loaded.
 
    mh_LoadHrb_Clear()
+   
+   //	Save session if it exist
+   
+   mh_WriteSession()
 
 RETURN 1
 
@@ -152,6 +159,22 @@ RETURN 1
 FUNCTION GetRequestRec()
 
 RETURN ts_request_rec
+
+// ----------------------------------------------------------------//
+
+FUNCTION MH_Config()
+
+RETURN ts_hConfig
+
+// ----------------------------------------------------------------//
+
+FUNCTION MH_oSession( o )
+
+	if valtype( o ) == 'O'
+		ts_oSession := o 
+	endif
+	
+RETURN ts_oSession
 
 // ----------------------------------------------------------------//
 
@@ -365,15 +388,17 @@ RETU NIL
 
 // ----------------------------------------------------------------//
 
-FUNCTION MH_DoError( cDescription, cSubsystem )
+FUNCTION MH_DoError( cDescription, cSubsystem, nSubCode )
 
    LOCAL oError := ErrorNew()
 
    hb_default( @cSubsystem, "modHarbour.v2" )
+   hb_default( @nSubCode, 0 )
 
-   oError:Subsystem   := cSubsystem
-   oError:Severity    := 2 // ES_ERROR
-   oError:Description := cDescription
+   oError:Subsystem   	:= cSubsystem
+   oError:SubCode 		:= nSubCode
+   oError:Severity    	:= 2 // ES_ERROR
+   oError:Description 	:= cDescription
    Eval( ErrorBlock(), oError )
 
 RETURN NIL
@@ -382,17 +407,19 @@ RETURN NIL
 
 FUNCTION MH_InitProcess()
 
-	local cPath, cPathFile, cFile
+	local cPath, cPathFile, cFile, cModules
 	local aModules 	:= {}	
 	
-	if !empty( MH_AppModules() )
+	if !empty( mh_HashModules() )
 		retu nil
 	endif 
 	
-	if !empty( ts_hConfig[ 'modules' ] )		
+	cModules := AP_GetEnv( 'MH_INITPROCESS' ) 
+	
+	if !empty( cModules )		
 
 		cPath 		:= HB_GetEnv( 'PRGPATH' )
-		aModules 	:= hb_ATokens( ts_hConfig[ 'modules' ], "," )
+		aModules 	:= hb_ATokens( cModules, "," )
 		nLen 		:= len(aModules)
 		
 		for n := 1 to nLen
@@ -405,20 +432,20 @@ FUNCTION MH_InitProcess()
 				
 				if  file( cPathFile )	
 
-					if ! hb_HHasKey( MH_AppModules(), cFile )									
+					if ! hb_HHasKey( mh_HashModules(), cFile )									
 					
 						cExt := lower( hb_FNameExt( cFile ) )						
 						
 						do case
 						
 							case cExt == '.hrb'																			
-								
-                        WHILE !hb_mutexLock( MH_Mutex() )
-                        ENDDO
-                                
-								MH_AppModules()[ cFile ] := hb_hrbLoad( HB_HRB_BIND_OVERLOAD, cPathFile ) 
+									
+								WHILE !hb_mutexLock( MH_Mutex() )
+								ENDDO
+										
+									mh_HashModules()[ cFile ] := hb_hrbLoad( HB_HRB_BIND_OVERLOAD, cPathFile ) 
 
-                        hb_mutexUnlock( MH_Mutex() )
+								hb_mutexUnlock( MH_Mutex() )
                         
 							case cExt == '.prg'							
 							
@@ -426,18 +453,18 @@ FUNCTION MH_InitProcess()
 
 								IF ! Empty( oHrb )
 
-                           WHILE !hb_mutexLock( MH_Mutex() )
-                           ENDDO
-   
-                           MH_AppModules()[ cFile ] := hb_hrbLoad( HB_HRB_BIND_OVERLOAD, oHrb )
+								   WHILE !hb_mutexLock( MH_Mutex() )
+								   ENDDO
+		   
+								   mh_HashModules()[ cFile ] := hb_hrbLoad( HB_HRB_BIND_OVERLOAD, oHrb )
 
-                           hb_mutexUnlock( MH_Mutex() )
+								   hb_mutexUnlock( MH_Mutex() )
                            
 								ENDIF
 
 							case cExt == '.ch'																
 								
-								MH_AppModules()[ cFile ] := hb_memoread( cPathFile )
+								mh_HashModules()[ cFile ] := hb_memoread( cPathFile )
 							
 							otherwise													
 							
@@ -464,4 +491,7 @@ FUNCTION MH_InitProcess()
 	endif 	
 
 RETU NIL  
+
+// ----------------------------------------------------------------//
+
 

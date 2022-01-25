@@ -3559,6 +3559,9 @@ extern MH_VALTOCHAR
 extern MH_MODBUILDDATE
 extern MH_INCLUDE
 extern MH_PCODECACHED
+extern MH_SESSION
+
+// Trace...
 
 extern _D
 extern _W

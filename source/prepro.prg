@@ -51,9 +51,9 @@ FUNCTION MH_AddPPRules()
 
 	//	InitProcess .ch files
 	
-	for n := 1 to len(MH_AppModules())
+	for n := 1 to len(mh_HashModules())
 	
-		aPair 	:= HB_HPairAt( MH_AppModules(), n )		
+		aPair 	:= HB_HPairAt( mh_HashModules(), n )		
 		cExt 	:= lower( hb_FNameExt( aPair[1] ) )
 
 		if cExt == '.ch' 	
