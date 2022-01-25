@@ -36,6 +36,7 @@ source/prepro.prg
 source/preproPHP.prg
 source/trace.prg
 source/errorsys.prg
+source/sessions.prg
 
 
 {allmsvc}-cflag=-Ic:\xampp\apache\include
