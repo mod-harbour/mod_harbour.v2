@@ -13,6 +13,7 @@ function MH_GetCookies( cKey )
    local aCookies 		:= hb_aTokens( cCookies, ";" )
    local hHeadersOut 	:= ap_HeadersOut(), cCookieHeader
    local cCookie, hCookies := {=>}
+   local cHKey, uValue 
 
    if( hb_HHasKey( hHeadersOut, "Set-Cookie" ) )
       cCookieHeader := hHeadersOut[ "Set-Cookie" ]
@@ -21,8 +22,13 @@ function MH_GetCookies( cKey )
    endif
    
    for each cCookie in aCookies
-      hb_HSet( hCookies, LTrim( SubStr( cCookie, 1, At( "=", cCookie ) - 1 ) ),;
-               SubStr( cCookie, At( "=", cCookie ) + 1 ) )
+	  cHKey 	:= LTrim( SubStr( cCookie, 1, At( "=", cCookie ) - 1 ) )
+	  uValue 	:= SubStr( cCookie, At( "=", cCookie ) + 1 ) 
+	  
+	  if !empty( cHKey )
+		hb_HSet( hCookies, cHKey, uValue )
+	  endif
+               
    next   
    
    hb_HCaseMatch( hCookies, .f. )
