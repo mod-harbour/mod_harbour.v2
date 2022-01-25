@@ -3,20 +3,20 @@ function Main()
 	??  '<h2>Test Sessions. Destroy sessions</h2><hr>'
 
 	? 	'<h3>'
-	?  	'<li>We can verify if exist exist => mh_IsSession() </li>'
+	?  	'<li>We can verify if exist exist => mh_SessionActive() </li>'
 
-		if  ! mh_IsSession()
-			? "<hr><h4>No session exists - <a href='session.prg'>Init session session.prg</a>"
+		if  ! mh_SessionActive()
+			? "<hr><h4>No session active - <a href='session.prg'>Init session session.prg</a>"
 			retu nil
 		endif
 		
-	?  	'<li>Init Session => mh_InitSession() </li>'
+	?  	'<li>Init Session => mh_SessionInit() </li>'
 	
-		mh_InitSession()
+		mh_SessionInit()
 
-	?  	'<li>Close Session => mh_EndSession() </li>'		
+	?  	'<li>Close Session => mh_SessionEnd() </li>'		
 	
-		mh_EndSession()	
+		mh_SessionEnd()	
 		
 	? 	"<hr><h4>That's all. Session was destroyed. Now you can refresh page - <a href='session_end.prg'>Refresh session_end.prg</a>"		
 

@@ -150,7 +150,7 @@ FUNCTION MH_Runner( r )
    
    //	Save session if it exist
    
-   mh_WriteSession()
+   mh_SessionWrite()
 
 RETURN 1
 

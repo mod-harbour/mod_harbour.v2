@@ -3,9 +3,9 @@ function Main()
 	??  '<h2>Test Sessions. Recover values...</h2><hr>'
 
 	? 	'<h3>'
-	?  	'<li>Init Session => mh_InitSession() </li>'
+	?  	'<li>Init Session => mh_SessionInit() </li>'
 	
-		mh_InitSession()
+		mh_SessionInit()
 	
 	?	'<li>Recover values from session'		
 	?	"=> mh_Session( 'dni' )"

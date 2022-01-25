@@ -6,9 +6,9 @@ function main()
 	?? '<h2>Test Sessions. Save values...</h2><hr>'
 	
 	? 	"<h3>"
-	?  	"<li>Init Session => mh_InitSession() </li>"
+	?  	"<li>Init Session => mh_SessionInit() </li>"
 	
-		mh_InitSession()		
+		mh_SessionInit()		
 
 
 	?	"<li>Show vars"

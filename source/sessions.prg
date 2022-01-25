@@ -8,7 +8,7 @@
 
 //	------------------------------------------------------------------------------
 
-function mh_InitSession( cName, nExpired )
+function mh_SessionInit( cName, nExpired )
 
 	local oSession := MH_Sessions():New( cName, nExpired ) 
 	
@@ -30,17 +30,17 @@ retu nil
 
 //	------------------------------------------------------------------------------
 
-function mh_WriteSession()
+function mh_SessionWrite()
 
 	if ValType( mh_oSession() ) == 'O' .and. mh_oSession():ClassName() == 'MH_SESSIONS'
-		mh_oSession():Write_Session()		
+		mh_oSession():Write()		
 	endif
 	
 retu nil
 
 //	------------------------------------------------------------------------------
 
-function mh_EndSession()
+function mh_SessionEnd()
 
 	if ValType( mh_oSession() ) == 'O' .and. mh_oSession():ClassName() == 'MH_SESSIONS'
 		mh_oSession():End()		
@@ -50,7 +50,7 @@ retu nil
 
 //	------------------------------------------------------------------------------
 
-function mh_IsSession( cName )
+function mh_SessionActive( cName )
 
 	local oSession := MH_Sessions():New( cName ) 
 	
@@ -82,8 +82,8 @@ CLASS MH_Sessions
 	METHOD  Data( cKey, uValue )	
 	
 	METHOD  Read_CSID()
-	METHOD  Read_Session()
-	METHOD  Write_Session()
+	METHOD  Read()
+	METHOD  Write()
 	
 	METHOD  Info()			
 	METHOD  Garbage()			
@@ -112,7 +112,7 @@ retu Self
 METHOD Init() CLASS MH_Sessions	
 	
 	if ::lIs_Ready
-		::Read_Session()				
+		::Read()				
 	endif 
 
 retu nil 
@@ -291,7 +291,7 @@ retu lIsFile
 
 //	------------------------------------------------------------------------------
 
-METHOD Read_Session() CLASS MH_Sessions
+METHOD Read() CLASS MH_Sessions
 
 	
 	local lCSID 	:= .F.
@@ -357,7 +357,7 @@ retu nil
 
 //	------------------------------------------------------------------------------
 
-METHOD Write_Session() CLASS MH_Sessions
+METHOD Write() CLASS MH_Sessions
 
 	local cSession, cFile, cKey, cData, lSave 
 
