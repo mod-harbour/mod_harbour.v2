@@ -40,6 +40,7 @@ static PHB_ITEM hPcodeCached;
 static PHB_ITEM hMutex = NULL;
 static PHB_ITEM hHashModules;
 static PHB_ITEM hHashConfig;
+static PHB_DYNS s_pDyns_Mh_Runner;
 
 //----------------------------------------------------------------//
 
@@ -79,8 +80,8 @@ void mh_EndMutex()
 
 request_rec *GetRequestRec(void)
 {
-   HB_FUNC_EXEC( GETREQUESTREC );
-   return hb_parptr( -1 );
+   HB_FUNC_EXEC(GETREQUESTREC);
+   return hb_parptr(-1);
 }
 
 //----------------------------------------------------------------//
@@ -227,6 +228,13 @@ static int harbourV2_post_config(apr_pool_t *pconf, apr_pool_t *plog,
 
    apr_pool_cleanup_register(pconf, NULL, shm_cleanup_wrapper,
                              apr_pool_cleanup_null);
+
+   if (!hb_vmIsActive())
+   {
+      hb_vmInit(HB_FALSE);
+      s_pDyns_Mh_Runner = hb_dynsymFind("MH_RUNNER");
+   };
+
    return OK;
 }
 
@@ -289,15 +297,8 @@ static int harbourV2_handler(request_rec *r)
    ap_add_cgi_vars(r);
    ap_add_common_vars(r);
 
-   mh_StartMutex();
-   if (!hb_vmIsActive())
-   {
-      hb_vmInit(HB_FALSE);
-   };
-   mh_EndMutex();
-
    hb_vmThreadInit(NULL);
-   hb_vmPushDynSym(hb_dynsymFind("MH_RUNNER"));
+   hb_vmPushDynSym(s_pDyns_Mh_Runner);
    hb_vmPushNil();
    hb_vmPushPointer(r);
    hb_vmFunction(1);
