@@ -12,8 +12,8 @@ function main()
 
 
 	?	"<li>Show vars"
-	? 	"=> cDni: " , cDni
-	? 	"=> cTime: " , cTime
+	? 	"=> local cDni :=" , cDni
+	? 	"=> local cTime :=" , cTime
 	? 	"</li>"
 	
 	
