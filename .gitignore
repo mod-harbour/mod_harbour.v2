@@ -1,4 +1,4 @@
-output/win64/*
+#output/win64/*
 output/win32/*
 samples/trace/
 samples/log.txt
@@ -11,6 +11,6 @@ build64.bat
 build32.bat
 mod_harbour.v2.code-workspace
 # exception to the rule
-!output/win64/.gitkeep 
+#!output/win64/.gitkeep 
 !output/win32/.gitkeep 
 
