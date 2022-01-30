@@ -42,6 +42,7 @@ FUNCTION Main()
 
 RETURN NIL
 
+
 // ------------------------------------------------------------------ //
 
 FUNCTION MH_Runner( r )
@@ -446,6 +447,7 @@ FUNCTION MH_InitProcess()
 									mh_HashModules()[ cFile ] := hb_hrbLoad( HB_HRB_BIND_OVERLOAD, cPathFile ) 
 
 								hb_mutexUnlock( MH_Mutex() )
+									
                         
 							case cExt == '.prg'							
 							
@@ -459,6 +461,7 @@ FUNCTION MH_InitProcess()
 								   mh_HashModules()[ cFile ] := hb_hrbLoad( HB_HRB_BIND_OVERLOAD, oHrb )
 
 								   hb_mutexUnlock( MH_Mutex() )
+									
                            
 								ENDIF
 
@@ -488,8 +491,8 @@ FUNCTION MH_InitProcess()
 		
 		next 
 		
-	endif 	
-
+	endif 			
+	
 RETU NIL  
 
 // ----------------------------------------------------------------//
