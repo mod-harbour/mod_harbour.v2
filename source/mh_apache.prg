@@ -5,9 +5,7 @@
 */
 
 
-#ifdef __PLATFORM__WINDOWS
 #include "externs.hbx"
-#endif
 
 #include "hbthread.ch"
 #include "hbclass.ch"

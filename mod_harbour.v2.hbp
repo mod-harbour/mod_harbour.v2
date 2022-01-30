@@ -1,12 +1,16 @@
 -hbdynvm
 {msvc64}-ooutput/win64/mod_harbour.v2.so
 {msvc}-ooutput/win32/mod_harbour.v2.so
+{gcc}-o./output/linux/mod_harbour.v2.so
+{linux|darwin}-static 
+
 -mt
 -trace
 -info
 
 -l-hbfship
 -l-hbxpp
+
 {msvc}-llibssl-1_1
 {msvc}-llibcrypto-1_1
 {msvc64}-llibcrypto-1_1-x64
@@ -16,11 +20,12 @@
 {allmsvc}-llibhttpd
 {allmsvc}-llibapr-1
 -Lc:\xampp\apache\lib
--lapr-1
--laprutil-1
--llibapr-1
--llibaprutil-1
--llibhttpd
+
+{allmsvc}-lapr-1
+{allmsvc}-laprutil-1
+{allmsvc}-llibapr-1
+{allmsvc}-llibaprutil-1
+{allmsvc}-llibhttpd  
 
 -ic:\xampp\apache\include
 source/mod_harbour.c
@@ -40,15 +45,15 @@ source/sessions.prg
 
 
 {allmsvc}-cflag=-Ic:\xampp\apache\include
+{!darwin}-cflag=-TC
 {gcc}-cflag=-I/usr/include/apache2
 {gcc}-cflag+=-I/usr/include/apr-1.0
+{allmsvc}-ic:\xampp\apache\include
 {darwin}-cflag=-I/usr/include/apache2
 {darwin}-cflag+=-I/usr/include/apr-1.0
-{darwin}-cflag+=-I/usr/local/Cellar/httpd/2.4.46/include/httpd
+{darwin}-cflag+=-I/usr/local/Cellar/httpd/2.4.47/include/httpd
 {darwin}-cflag+=-I/usr/local/Cellar/apr-util/1.6.1_3/libexec/include/apr-1
-{darwin}-cflag+=-I/usr/local/Cellar/apr/1.7.0/libexec/include/apr-1
-
-
+{darwin}-cflag+=-I/usr/local/Cellar/apr/1.7.0_2/libexec/include/apr-1  
 
 {allmsvc}hbwin.hbc
 {allmsvc}hbhpdf.hbc
