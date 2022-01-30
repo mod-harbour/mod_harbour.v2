@@ -15,7 +15,6 @@
 -lhbhsx
 -lhblang
 -lhbmacro
--lhbpcre
 -lhbpp
 -lhbrdd
 -lhbsix
@@ -28,7 +27,6 @@
 -lhbziparc
 -lhbmzip
 -lminizip
--lgpm
 -lhbmemio
 -lhbnetio
 -lhbssl
