@@ -55,4 +55,3 @@ jobs:
       with:
        name: mod_harbour.v2_ubuntu64
        path: artifact
-
