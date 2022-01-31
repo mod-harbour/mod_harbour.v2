@@ -7,7 +7,7 @@ Add these lines at the bottom of httpd.conf
 WINDOWS
 LoadModule harbourV2_module modules/mod_harbour.v2.so
 
-LINUX( NOT TESTED YET !!! )
+LINUX( Ubuntu64 )
 LoadModule harbourV2_module /usr/lib/apache2/modules/mod_harbour.v2.so
 
 <FilesMatch "\.(prg|hrb)$">
