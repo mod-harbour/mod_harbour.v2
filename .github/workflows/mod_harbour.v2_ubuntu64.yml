@@ -1,4 +1,4 @@
-name: mod_harbour.v2 for Ubuntu 64 
+name: mod_harbour.v2 for Ubuntu 64
 
 on:
   push:
@@ -15,15 +15,15 @@ jobs:
     
     - name: Install dependencies
       run: |
-        sudo apt-get update
-        sudo apt install libcurl4-openssl-dev libssl-dev apache2-dev gcc
-        sudo cp -r /usr/include/x86_64-linux-gnu/curl /usr/include
+         sudo apt-get update
+         sudo apt install libcurl4-openssl-dev libssl-dev apache2-dev gcc
+         sudo cp -r /usr/include/x86_64-linux-gnu/curl /usr/include
 
     - name: Checkout harbour/core repo
       uses: actions/checkout@v2
       with:
-        repository: harbour/core
-        path: harbour
+       repository: harbour/core
+       path: harbour
 
     - name: Download and extract Harbour binaries
       run: |
@@ -33,8 +33,8 @@ jobs:
     - name: Checkout mod_harbour.v2 repo
       uses: actions/checkout@v2
       with:
-        repository: mod-harbour/mod_harbour.v2
-        path: harbour/contrib/mod_harbour.v2
+       repository: mod-harbour/mod_harbour.v2
+       path: harbour/contrib/mod_harbour.v2
 
     - name: Build mod_harbour.v2
       working-directory: harbour/contrib/mod_harbour.v2
@@ -53,5 +53,6 @@ jobs:
     - name: Upload mod_harbour.v2.so to artifact
       uses: actions/upload-artifact@v2
       with:
-        name: mod_harbour.v2_ubuntu64
-        path: artifact
+       name: mod_harbour.v2_ubuntu64
+       path: artifact
+
