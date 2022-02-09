@@ -1,68 +1,28 @@
 /*
-**  exec.prg -- Execution module
+**  prepro.prg -- Execution module
 **
-** (c) FiveTech Software SL, 2019-2020
-** Developed by Antonio Linares alinares@fivetechsoft.com
-** MIT license https://github.com/FiveTechSoft/mod_harbour/blob/master/LICENSE
 */
+
 #include "hbclass.ch"
 #include "hbhrb.ch"
 
 #include "mh_apache.ch"
 
-THREAD STATIC hPP
-
 FUNCTION MH_AddPPRules()
 
-   LOCAL cOs := OS()
-   LOCAL n, aPair, cExt 
-
-   IF hPP == nil
-      hPP = __pp_Init()
-
-      DO CASE
-      CASE "Windows" $ cOs  ; __pp_Path( hPP, "c:\harbour\include" )
-      CASE "Linux" $ cOs   ; __pp_Path( hPP, "~/harbour/include" )
-      ENDCASE
-
-      IF ! Empty( hb_GetEnv( "HB_INCLUDE" ) )
-         __pp_Path( hPP, hb_GetEnv( "HB_INCLUDE" ) )
-      ENDIF
-   ENDIF
-
-   __pp_AddRule( hPP, "#xcommand ? [<explist,...>] => ap_Echo( '<br>' [,<explist>] )" )
-   __pp_AddRule( hPP, "#xcommand ?? [<explist,...>] => ap_Echo( [<explist>] )" )
-   __pp_AddRule( hPP, "#define CRLF hb_OsNewLine()" )
-   __pp_AddRule( hPP, "#xcommand TEXT <into:TO,INTO> <v> => #pragma __cstream|<v>:=%s" )
-   __pp_AddRule( hPP, "#xcommand TEXT <into:TO,INTO> <v> ADDITIVE => #pragma __cstream|<v>+=%s" )
-   __pp_AddRule( hPP, "#xcommand TEMPLATE [ USING <x> ] [ PARAMS [<v1>] [,<vn>] ] => " + ;
-      '#pragma __cstream | ap_Echo( mh_InlinePrg( %s, [@<x>] [,<(v1)>][+","+<(vn)>] [, @<v1>][, @<vn>] ) )' )
-   __pp_AddRule( hPP, "#xcommand BLOCKS [ PARAMS [<v1>] [,<vn>] ] => " + ;
-      '#pragma __cstream | ap_Echo( mh_ReplaceBlocks( %s, "{{", "}}" [,<(v1)>][+","+<(vn)>] [, @<v1>][, @<vn>] ) )' )
-   __pp_AddRule( hPP, "#xcommand BLOCKS TO <b> [ PARAMS [<v1>] [,<vn>] ] => " + ;
-      '#pragma __cstream | <b>+=mh_ReplaceBlocks( %s, "{{", "}}" [,<(v1)>][+","+<(vn)>] [, @<v1>][, @<vn>] )' )
-   __pp_AddRule( hPP, "#command ENDTEMPLATE => #pragma __endtext" )
-   __pp_AddRule( hPP, "#xcommand TRY  => BEGIN SEQUENCE WITH {| oErr | Break( oErr ) }" )
-   __pp_AddRule( hPP, "#xcommand CATCH [<!oErr!>] => RECOVER [USING <oErr>] <-oErr->" )
-   __pp_AddRule( hPP, "#xcommand FINALLY => ALWAYS" )
-   __pp_AddRule( hPP, "#xcommand DEFAULT <v1> TO <x1> [, <vn> TO <xn> ] => ;" + ;
-      "IF <v1> == NIL ; <v1> := <x1> ; END [; IF <vn> == NIL ; <vn> := <xn> ; END ]" )
-	
-
 	//	InitProcess .ch files
-	
 	for n := 1 to len(mh_HashModules())
 	
 		aPair 	:= HB_HPairAt( mh_HashModules(), n )		
 		cExt 	:= lower( hb_FNameExt( aPair[1] ) )
 
 		if cExt == '.ch' 	
-			__pp_AddRule( hPP, aPair[2] )			
+         __pp_AddRule( MH_PPRules(), aPair[2] )			
 		endif 
 		
 	next 
 
-RETURN hPP
+RETURN 
 
 
 FUNCTION MH_ExecuteHrb( oHrb, ... )
@@ -71,12 +31,7 @@ FUNCTION MH_ExecuteHrb( oHrb, ... )
 
    ErrorBlock( {| oError | ap_Echo( mh_ErrorSys( oError ) ), Break( oError ) } )  
 
-	WHILE !hb_mutexLock( mh_Mutex() )
-	ENDDO
-
 	pSym := hb_hrbLoad( HB_HRB_BIND_OVERLOAD, oHrb )
-	  
-	hb_mutexUnlock( mh_Mutex() )	
    
    uRet := hb_hrbDo( pSym, ... )
 
@@ -91,13 +46,8 @@ FUNCTION MH_Execute( cCode, ... )
 
    IF ! Empty( oHrb )
    
-	  WHILE !hb_mutexLock( mh_Mutex() )
-	  ENDDO	  
-
 	  pSym := hb_hrbLoad( HB_HRB_BIND_OVERLOAD, oHrb )
 	  
-	  hb_mutexUnlock( mh_Mutex() )
-
       uRet := hb_hrbDo( pSym, ... )
 
    ENDIF	
@@ -118,11 +68,9 @@ FUNCTION MH_Compile( cCode, ... )
    
    ErrorBlock( {| oError | mh_ErrorSys( oError, @cCode, @cCodePP ), Break( oError ) } )
 
-   mh_AddPPRules()   
-
    mh_ReplaceBlocks( @cCode, "{%", "%}" )   
 
-   cCodePP := __pp_Process( hPP, cCode )
+   cCodePP := __pp_Process( mh_PPRules(), cCode )
 
 	oHrb = HB_CompileFromBuf( cCodePP, .T., "-n", "-q2", "-I" + cHBheader, ;
 			"-I" + hb_GetEnv( "HB_INCLUDE" ), hb_GetEnv( "HB_USER_PRGFLAGS" ) )	

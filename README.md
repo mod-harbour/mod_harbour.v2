@@ -1,14 +1,18 @@
-# mod_harbour.v2
-mod_harbour.v2 - Harbour Apache standalone Module 
+# mod_harbour.v2.1
+mod_harbour.v2.1 - Harbour Apache Module 
 
 Add these lines at the bottom of httpd.conf
 
 ```
 WINDOWS
-LoadModule harbourV2_module modules/mod_harbour.v2.so
+LoadModule mod_harbourV2_module modules/mod_harbour.v2.so
+MH_LIBRARY c:\\xampp\htdocs\\libmhapache.dll
+MH_NVMS 10
 
-LINUX( Ubuntu64 )
-LoadModule harbourV2_module /usr/lib/apache2/modules/mod_harbour.v2.so
+LINUX( Not tested yet!!! )
+LoadModule mod_harbourV2_module /usr/lib/apache2/modules/mod_harbour.v2.so
+MH_LIBRARY /var/www/html/libmhapache.so
+MH_NVMS 10
 
 <FilesMatch "\.(prg|hrb)$">
     SetHandler harbour

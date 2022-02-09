@@ -17,25 +17,22 @@
 
 FUNCTION MH_HashGet( cKey, xDefault, cNameSpace )
 
-   LOCAL xRet, hPersistent 
+   LOCAL xRet
 
    hb_default( @xDefault, NIL )
    hb_default( @cNameSpace, 'public' )
    
-   while !hb_mutexLock( mh_Mutex() )
-   enddo
+   mh_StartMutex()
    
-   hPersistent := mh_Hash()
+   HB_HCaseMatch( mh_Hash(), .f. )
    
-   HB_HCaseMatch( hPersistent, .f. )
-   
-    if !HB_HHasKey( hPersistent, cNameSpace )
+    if !HB_HHasKey( mh_Hash(), cNameSpace )
 		xRet := xDefault 
 	else	      
-		xRet := hb_HGetDef( hPersistent[ cNameSpace ], cKey, xDefault )
+		xRet := hb_HGetDef( mh_Hash()[ cNameSpace ], cKey, xDefault )
 	endif 
 	
-   hb_mutexUnlock( mh_Mutex() )
+   mh_EndMutex()
 
 RETURN xRet
 
@@ -43,25 +40,20 @@ RETURN xRet
 
 FUNCTION MH_HashSet( cKey, xValue, cNameSpace )
 
-	local hPersistent 
-
    hb_default( @cNameSpace, 'public' )   
 
-   while !hb_mutexLock( mh_Mutex() )
-   enddo
+   mh_StartMutex()
    
-   hPersistent := mh_Hash()
-
-   HB_HCaseMatch( hPersistent, .f. )
+   HB_HCaseMatch( mh_Hash(), .f. )
    
-   if !HB_HHasKey( hPersistent, cNameSpace )		
-		hPersistent[ cNameSpace ] := {=>} 
+   if !HB_HHasKey( mh_Hash(), cNameSpace )		
+		mh_Hash()[ cNameSpace ] := {=>} 
    endif 
   
-   hPersistent[ cNameSpace ][ cKey ] := xValue 
+   mh_Hash()[ cNameSpace ][ cKey ] := xValue 
   
-   hb_mutexUnlock( mh_Mutex() )
-
+   mh_EndMutex()
+   
 RETURN
 
 // ----------------------------------------------------------------//

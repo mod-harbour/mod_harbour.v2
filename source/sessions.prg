@@ -162,12 +162,11 @@ METHOD Config() CLASS MH_Sessions
 			
 		endif 
 		
-	    while !hb_mutexLock( mh_Mutex() )
-	    enddo		
-	
+		mh_StartMutex()
+		 	
 		mh_HashConfig()[ 'sessions' ] := ::lIs_Ready 
-		
-		hb_mutexUnlock( mh_Mutex() )
+
+		mh_EndMutex()
 		
 	else 
 	
@@ -373,12 +372,11 @@ METHOD Write() CLASS MH_Sessions
 	
 	cFile 	 	:= ::cDirTmp + '/' + SESSION_PREFIX + ::cSID 			
 
-	while !hb_mutexLock( mh_Mutex() )
-	enddo				
-		
-		lSave := hb_memowrit( cFile, cData ) 	
+   mh_StartMutex()
+			
+	lSave := hb_memowrit( cFile, cData ) 	
 
-	hb_mutexUnlock( mh_Mutex() )
+   mh_EndMutex()
 	
 	if lSave
 		::Renew()	
