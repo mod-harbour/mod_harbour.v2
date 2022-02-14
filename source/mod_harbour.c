@@ -17,7 +17,7 @@
 #include "util_script.h"
 #include "apr_general.h"
 
-#define nVms 500
+#define NUM_VMS 500 
 
 #include <hbapi.h>
 
@@ -47,12 +47,12 @@ PHB_ITEM hHashConfig;
 typedef int (*PMH_APACHE)(void *pRequestRec, void *phHash, void *phHashConfig, void *pmh_StartMutex, void *pmh_EndMutex);
 
 #ifdef _WINDOWS_
-HMODULE libmhapache[nVms];
+HMODULE libmhapache[NUM_VMS];
 #else
-static void *libmhapache[nVms];
+static void *libmhapache[NUM_VMS];
 #endif
 
-static int vm[nVms] = {0};
+static int vm[NUM_VMS] = {0};
 
 //----------------------------------------------------------------//
 
@@ -179,19 +179,12 @@ static void mod_harbourV2_child_init(apr_pool_t *p, server_rec *s)
    {
 #ifdef _WINDOWS_
       CopyFile(mh_config.mh_library, apr_psprintf(p, "%s/%s%d.dll", szTempPath, "libmhapache", i), 0);
-#else
-      CopyFile(mh_config.mh_library, apr_psprintf(p, "%s/%s%d.so", szTempPath, "libmhapache", i), 0);
-#endif
-   }
-
-   for (i = 0; i < mh_config.mh_nVms; i++)
-   {
-#ifdef _WINDOWS_
       libmhapache[i] = LoadLibrary(apr_psprintf(p, "%s/%s%d.dll", szTempPath, "libmhapache", i));
 #else
+      CopyFile(mh_config.mh_library, apr_psprintf(p, "%s/%s%d.so", szTempPath, "libmhapache", i), 0);
       libmhapache[i] = dlopen(apr_psprintf(p, "%s/%s%d.%s", szTempPath, "libmhapache", i, "so"), RTLD_NOW);
 #endif
-   };
+   }
 
    hHash = hb_hashNew(NULL);
    hHashConfig = hb_hashNew(NULL);
@@ -321,7 +314,6 @@ static int mod_harbourV2_handler(request_rec *r)
 
    char *szTempFileName = NULL;
    unsigned int dwThreadId;
-   apr_status_t rs;
    int nUsedVm = -1;
    int i, iRet = OK;
 
@@ -342,12 +334,7 @@ static int mod_harbourV2_handler(request_rec *r)
    ap_add_cgi_vars(r);
    ap_add_common_vars(r);
 
-   while (1)
-   {
-      rs = apr_global_mutex_trylock(harbour_mutex);
-      if (APR_SUCCESS == rs)
-         break;
-   };
+   mh_StartMutex();
 
    for (i = 0; i < mh_config.mh_nVms; i++)
    {
@@ -356,8 +343,8 @@ static int mod_harbourV2_handler(request_rec *r)
          nUsedVm = i;
          vm[nUsedVm] = 1;
          break;
-      };
-   };
+      }
+   }
 
    if (nUsedVm != -1)
    {
@@ -386,9 +373,9 @@ static int mod_harbourV2_handler(request_rec *r)
 #else
       _mh_apache = dlsym(libmhapache_vmx, "mh_apache");
 #endif
-   };
+   }
 
-   rs = apr_global_mutex_unlock(harbour_mutex);
+   mh_EndMutex();
 
    iRet = _mh_apache(r, (PHB_ITEM *)hHash, (PHB_ITEM *)hHashConfig, (void *)mh_StartMutex, (void *)mh_EndMutex);
 
@@ -405,7 +392,7 @@ static int mod_harbourV2_handler(request_rec *r)
       dlclose(libmhapache_vmx);
       remove(szTempFileName);
 #endif
-   };
+   }
    return iRet;
 }
 
@@ -428,5 +415,4 @@ module AP_MODULE_DECLARE_DATA mod_harbourV2_module = {
     NULL,
     NULL,
     mod_harbourV2_params,
-    mod_harbourV2_register_hooks,
-    0};
+    mod_harbourV2_register_hooks};
