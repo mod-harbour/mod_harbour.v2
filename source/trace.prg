@@ -19,7 +19,7 @@ retu WAPI_OutputDebugString( MH_Out( 'dbg', ... ) )
 
 function _w( ... )
 
-	ap_echo(  '<code>' + MH_Out( 'web', ... ) + '</code>' )	
+	ap_echo(  '<br><code>' + MH_Out( 'web', ... ) + '</code>' )	
 	
 retu nil
 

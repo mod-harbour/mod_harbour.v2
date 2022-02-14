@@ -2,6 +2,7 @@ function main()
 	
    ? 'Body:' , AP_Body()   
    ? 'Method:', Ap_Method()
+   ? 'Args:', Ap_Args()
    
    if AP_Method() == "POST"
    
