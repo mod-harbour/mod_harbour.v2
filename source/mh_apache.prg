@@ -500,6 +500,32 @@ RETURN NIL
 
 // ----------------------------------------------------------------//
 
+function mh_GetUri()
+
+	local cUri 
+
+	if !empty( ap_GetEnv('HTTPS') ) .and. ('on' == ap_GetEnv('HTTPS') )
+		cUri := 'https://'
+	else 
+		cUri := 'http://'
+	endif
+	
+	cUri += ap_GetEnv('HTTP_HOST') + hb_FNameDir( ap_GetEnv( 'SCRIPT_NAME' ) )	
+	
+retu cUri 
+
+// ----------------------------------------------------------------//
+
+function mh_Redirect( cUrl )
+	
+	ap_HeadersOutSet( "Location", cUrl  )			
+		
+	mh_ExitStatus( 302 )
+
+retu nil 
+
+// ----------------------------------------------------------------//
+
 #pragma BEGINDUMP
 
 #include <http_protocol.h>

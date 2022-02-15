@@ -3560,6 +3560,8 @@ extern MH_MODBUILDDATE
 extern MH_INCLUDE
 extern MH_PCODECACHED
 extern MH_SESSION
+extern MH_GETURI
+extern MH_REDIRECT
 
 // Trace...
 

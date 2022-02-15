@@ -40,9 +40,11 @@ retu nil
 
 //	------------------------------------------------------------------------------
 
-function mh_SessionEnd()
+function mh_SessionEnd( cName )
 
-	if ValType( mh_oSession() ) == 'O' .and. mh_oSession():ClassName() == 'MH_SESSIONS'
+	oSession := MH_Sessions():New( cName ) 
+	
+	if oSession:IsFile()
 		mh_oSession():End()		
 	endif
 	
