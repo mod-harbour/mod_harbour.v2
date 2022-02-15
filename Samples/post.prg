@@ -1,6 +1,8 @@
 function Main()
 
-   TEMPLATE
+	local cHtml := ''
+
+   BLOCKS TO cHtml 
 <html>
   <head>
     <meta charset="utf-8">
@@ -21,5 +23,7 @@ function Main()
   </body>
 </html>
    ENDTEXT
+   
+   ? cHtml
 
 return nil
