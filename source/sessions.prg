@@ -45,7 +45,13 @@ function mh_SessionEnd( cName )
 	oSession := MH_Sessions():New( cName ) 
 	
 	if oSession:IsFile()
-		mh_oSession():End()		
+		
+		if ! oSession:lIs_Session
+			oSession:Init()
+		endif
+
+		oSession:End()		
+		
 	endif
 	
 retu nil
