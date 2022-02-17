@@ -17,7 +17,7 @@
 #include "util_script.h"
 #include "apr_general.h"
 
-#define NUM_VMS 500 
+#define NUM_VMS 500
 
 #include <hbapi.h>
 
@@ -128,6 +128,13 @@ static int mod_harbourV2_post_config(apr_pool_t *pconf, apr_pool_t *plog,
    apr_pool_cleanup_register(pconf, NULL, shm_cleanup_wrapper,
                              apr_pool_cleanup_null);
 
+   if (!hb_fsFileExists(mh_config.mh_library))
+   {
+      ap_log_error(APLOG_MARK, APLOG_CRIT, rs, s, "MH_MESSAGE: MH_LIBRARY %s not found", mh_config.mh_library);
+
+      return HTTP_INTERNAL_SERVER_ERROR;
+   }
+
    return OK;
 }
 
@@ -159,15 +166,6 @@ static void mod_harbourV2_child_init(apr_pool_t *p, server_rec *s)
 #endif
 #endif
 
-   FILE *file;
-   if (!(file = fopen(mh_config.mh_library, "r")))
-   {
-      ap_log_error(APLOG_MARK, APLOG_CRIT, rs, s, "MH_MESSAGE: MH_LIBRARY %s not found", mh_config.mh_library);
-      return HTTP_INTERNAL_SERVER_ERROR;
-   }
-
-   fclose(file);
-
    ap_log_error(APLOG_MARK, APLOG_NOTICE, rs, s, "MH_MESSAGE: Using MH_LIBRARY: %s", mh_config.mh_library);
 
    if (mh_config.mh_nVms == NULL)
@@ -177,11 +175,10 @@ static void mod_harbourV2_child_init(apr_pool_t *p, server_rec *s)
 
    for (i = 0; i < mh_config.mh_nVms; i++)
    {
+      apr_file_copy(mh_config.mh_library, apr_psprintf(p, "%s/%s%d.dll", szTempPath, "libmhapache", i), APR_FILE_SOURCE_PERMS, p);
 #ifdef _WINDOWS_
-      CopyFile(mh_config.mh_library, apr_psprintf(p, "%s/%s%d.dll", szTempPath, "libmhapache", i), 0);
       libmhapache[i] = LoadLibrary(apr_psprintf(p, "%s/%s%d.dll", szTempPath, "libmhapache", i));
 #else
-      CopyFile(mh_config.mh_library, apr_psprintf(p, "%s/%s%d.so", szTempPath, "libmhapache", i), 0);
       libmhapache[i] = dlopen(apr_psprintf(p, "%s/%s%d.%s", szTempPath, "libmhapache", i, "so"), RTLD_NOW);
 #endif
    }
@@ -192,100 +189,7 @@ static void mod_harbourV2_child_init(apr_pool_t *p, server_rec *s)
 
 //----------------------------------------------------------------//
 
-const char *ap_getenv(const char *szVarName, request_rec *r)
-{
-   return apr_table_get(r->subprocess_env, szVarName);
-}
-
-//----------------------------------------------------------------//
-
-#ifdef _WINDOWS_
-
-char *GetErrorMessage(DWORD dwLastError)
-{
-   LPVOID lpMsgBuf;
-
-   FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM,
-                 NULL,
-                 dwLastError,
-                 MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), // Default language
-                 (LPTSTR)&lpMsgBuf,
-                 0,
-                 NULL);
-
-   return ((char *)lpMsgBuf);
-}
-
-#else
-
-//----------------------------------------------------------------//
-
-int CopyFile(const char *from, const char *to, int iOverWrite)
-{
-   int fd_to, fd_from;
-   char buf[4096];
-   ssize_t nread;
-   int saved_errno;
-
-   iOverWrite = iOverWrite;
-
-   fd_from = open(from, O_RDONLY);
-   if (fd_from < 0)
-      return -1;
-
-   fd_to = open(to, O_WRONLY | O_CREAT | O_EXCL, 0666);
-   if (fd_to < 0)
-      goto out_error;
-
-   while (nread = read(fd_from, buf, sizeof buf), nread > 0)
-   {
-      char *out_ptr = buf;
-      ssize_t nwritten;
-
-      do
-      {
-         nwritten = write(fd_to, out_ptr, nread);
-
-         if (nwritten >= 0)
-         {
-            nread -= nwritten;
-            out_ptr += nwritten;
-         }
-         else if (errno != EINTR)
-         {
-            goto out_error;
-         }
-      } while (nread > 0);
-   }
-
-   if (nread == 0)
-   {
-      if (close(fd_to) < 0)
-      {
-         fd_to = -1;
-         goto out_error;
-      }
-      close(fd_from);
-
-      return 0;
-   }
-
-out_error:
-   saved_errno = errno;
-
-   close(fd_from);
-   if (fd_to >= 0)
-      close(fd_to);
-
-   errno = saved_errno;
-   return errno;
-}
-
-#endif
-
-//----------------------------------------------------------------//
-
-const char *mh_lib_set_path(cmd_parms *cmd, void *cfg, const char *arg)
+static const char *mh_lib_set_path(cmd_parms *cmd, void *cfg, const char *arg)
 {
    mh_config.mh_library = arg;
    return NULL;
@@ -293,7 +197,7 @@ const char *mh_lib_set_path(cmd_parms *cmd, void *cfg, const char *arg)
 
 //----------------------------------------------------------------//
 
-const char *mh_lib_set_nvms(cmd_parms *cmd, void *cfg, const char *arg)
+static const char *mh_lib_set_nvms(cmd_parms *cmd, void *cfg, const char *arg)
 {
    mh_config.mh_nVms = atoi(arg);
    return NULL;
