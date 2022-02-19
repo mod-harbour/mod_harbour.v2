@@ -265,7 +265,7 @@ static int mod_harbourV2_handler(request_rec *r)
 #else
       dwThreadId = pthread_self();
 #endif
-      apr_file_copy(mh_config.mh_library, mh_config.mh_library, szTempFileName = apr_psprintf(r->pool, "%s/%s.%d.%d", szTempPath, "libmhapache", dwThreadId, (int)apr_time_now()), APR_FILE_SOURCE_PERMS, r->pool);
+      apr_file_copy(mh_config.mh_library, szTempFileName = apr_psprintf(r->pool, "%s/%s.%d.%d", szTempPath, "libmhapache", dwThreadId, (int)apr_time_now()), APR_FILE_SOURCE_PERMS, r->pool);
 #ifdef _WINDOWS_
       libmhapache_vmx = LoadLibrary(szTempFileName);
 #else
