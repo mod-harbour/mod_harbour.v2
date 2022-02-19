@@ -13,8 +13,11 @@
 
 function _d( ... )
 
+#ifdef __PLATFORM__WINDOWS
 retu WAPI_OutputDebugString( MH_Out( 'dbg', ... ) )
-
+#else
+retu ""
+#endif
 //	--------------------------------------------------------- //
 
 function _w( ... )

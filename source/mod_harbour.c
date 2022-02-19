@@ -180,7 +180,7 @@ static void mod_harbourV2_child_init(apr_pool_t *p, server_rec *s)
       libmhapache[i] = LoadLibrary(apr_psprintf(p, "%s/%s%d.dll", szTempPath, "libmhapache", i));
 #else
       apr_file_copy(mh_config.mh_library, apr_psprintf(p, "%s/%s%d.so", szTempPath, "libmhapache", i), APR_FILE_SOURCE_PERMS, p);
-      libmhapache[i] = dlopen(apr_psprintf(p, "%s/%s%d.%s", szTempPath, "libmhapache", i, "so"), RTLD_NOW);
+      libmhapache[i] = dlopen(apr_psprintf(p, "%s/%s%d.so", szTempPath, "libmhapache", i ), RTLD_NOW);
 #endif
    }
 
