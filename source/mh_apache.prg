@@ -670,6 +670,7 @@ HB_EXPORT_ATTR int mh_apache( request_rec * _pRequestRec, void * _phHash, void *
    hb_vmThreadInit( NULL );
    HB_FUNC_EXEC(MH_RUNNER);
    hb_vmThreadQuit();
+   return pRequestRec->status;
 }
 
 //----------------------------------------------------------------//
