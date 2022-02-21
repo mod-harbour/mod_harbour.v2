@@ -139,15 +139,12 @@ static int mod_harbourV2_post_config(apr_pool_t *pconf, apr_pool_t *plog,
 
    fclose(file);
 
+#ifndef _WINDOWS_
    for (int i = 0; i < mh_config.mh_nVms; i++)
    {
-#ifdef _WINDOWS_
-      CopyFile(mh_config.mh_library, apr_psprintf(pconf, "%s/%s%d.dll", szTempPath, "libmhapache", i), 1 );
-#else
       CopyFile(mh_config.mh_library, apr_psprintf(pconf, "%s/%s%d.so", szTempPath, "libmhapache", i), 0 );
-#endif
    }
-
+#endif
 
    return OK;
 }
@@ -193,6 +190,7 @@ static void mod_harbourV2_child_init(apr_pool_t *p, server_rec *s)
    {
       vm[i] == 0;
 #ifdef _WINDOWS_
+      CopyFile(mh_config.mh_library, apr_psprintf(p, "%s/%s%d.dll", szTempPath, "libmhapache", i), 0 );
       libmhapache[i] = LoadLibrary(apr_psprintf(p, "%s/%s%d.dll", szTempPath, "libmhapache", i));
       if ( libmhapache[i] == NULL ) {
         ap_log_error(APLOG_MARK, APLOG_NOTICE, rs, s, "MH_MESSAGE: LoadLibrary error: %s", GetLastError());
@@ -248,7 +246,7 @@ static int mod_harbourV2_handler(request_rec *r)
    char *szTempFileName = NULL;
    unsigned int dwThreadId;
    int nUsedVm = -1;
-   int i, iRet = OK;
+   int i;
 
 #ifdef _WINDOWS_
    HMODULE libmhapache_vmx = NULL;
@@ -313,7 +311,7 @@ static int mod_harbourV2_handler(request_rec *r)
 
    mh_EndMutex();
 
-   iRet = _mh_apache(r, (PHB_ITEM *)hHash, (PHB_ITEM *)hHashConfig, (void *)mh_StartMutex, (void *)mh_EndMutex);
+   _mh_apache(r, (PHB_ITEM *)hHash, (PHB_ITEM *)hHashConfig, (void *)mh_StartMutex, (void *)mh_EndMutex);
 
    if (nUsedVm != -1)
    {
@@ -329,7 +327,7 @@ static int mod_harbourV2_handler(request_rec *r)
       remove(szTempFileName);
 #endif
    }
-   return iRet;
+   return OK;
 }
 
 //----------------------------------------------------------------//

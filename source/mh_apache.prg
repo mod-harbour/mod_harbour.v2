@@ -658,7 +658,7 @@ HB_EXPORT_ATTR void mh_init( void )
 
 //----------------------------------------------------------------//
 
-HB_EXPORT_ATTR int mh_apache( request_rec * _pRequestRec, void * _phHash, void * _phHashConfig, void * _pmh_StartMutex, void * _pmh_EndMutex )
+HB_EXPORT_ATTR void mh_apache( request_rec * _pRequestRec, void * _phHash, void * _phHashConfig, void * _pmh_StartMutex, void * _pmh_EndMutex )
 {
    szBody = NULL;
    pRequestRec = _pRequestRec;
@@ -670,7 +670,6 @@ HB_EXPORT_ATTR int mh_apache( request_rec * _pRequestRec, void * _phHash, void *
    hb_vmThreadInit( NULL );
    HB_FUNC_EXEC(MH_RUNNER);
    hb_vmThreadQuit();
-   return pRequestRec->status;
 }
 
 //----------------------------------------------------------------//
