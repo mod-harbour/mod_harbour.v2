@@ -352,7 +352,74 @@ FUNCTION MH_LoadFile( cFile )
    ENDIF
 
 
-   RETU ''
+RETU ''
+
+// ----------------------------------------------------------------//
+
+FUNCTION MH_View( cFile, ... )
+
+   LOCAL cPath_File 	:= hb_GetEnv( "PRGPATH" ) + '/' + cFile
+   LOCAL cCode 		:= ''
+
+   IF "Linux" $ OS()
+      cPath_File = StrTran( cPath_File, '\', '/' )
+   ENDIF
+   
+   IF File( cPath_File )
+   
+		cCode := mh_ReplaceBlocks( hb_MemoRead( cPath_File ), '{{', '}}', '', ... )										
+
+   ELSE
+		MH_DoError( "MH_View() file not found: " + cPath_File  )
+   ENDIF	
+
+retu cCode
+
+// ----------------------------------------------------------------//
+
+function mh_Css( cFile )
+
+   LOCAL cPath_File 	:= hb_GetEnv( "PRGPATH" ) + '/' + cFile
+   LOCAL cCode 		:= ''
+
+   IF "Linux" $ OS()
+      cPath_File = StrTran( cPath_File, '\', '/' )
+   ENDIF
+   
+   IF File( cPath_File )
+   
+		cCode := '<style>' 
+		cCode += hb_MemoRead( cPath_File )
+		cCode += '</style>'      		
+   ELSE
+		MH_DoError( "MH_Css() file not found: " + cPath_File  )
+   ENDIF	
+
+retu cCode
+
+
+// ----------------------------------------------------------------//
+
+function mh_Js( cFile )
+
+   LOCAL cPath_File 	:= hb_GetEnv( "PRGPATH" ) + '/' + cFile
+   LOCAL cCode 		:= ''
+
+   IF "Linux" $ OS()
+      cPath_File = StrTran( cPath_File, '\', '/' )
+   ENDIF
+   
+   IF File( cPath_File )
+   
+		cCode := '<script>'
+		cCode += hb_MemoRead( cPath_File )
+		cCode += '</script>'     		
+   ELSE
+		MH_DoError( "MH_Js() file not found: " + cPath_File  )
+   ENDIF	
+
+retu cCode
+
 
 // ----------------------------------------------------------------//
 

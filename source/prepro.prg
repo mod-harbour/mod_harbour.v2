@@ -137,6 +137,7 @@ FUNCTION MH_ReplaceBlocks( cCode, cStartBlock, cEndBlock, cParams, ... )
 	LOCAL lReplaced := .F.
    
 			
+	hb_default( @cStartBlock, "{{" )
 	hb_default( @cEndBlock, "}}" )
 	hb_default( @cParams, "" )   
 

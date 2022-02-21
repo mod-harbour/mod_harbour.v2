@@ -221,7 +221,7 @@ function MH_ErrorShow( hError )
 	local cHtml := ''
 	local aLines, n, cTitle, cInfo, cLine
 	
-	cHtml += MH_Css()
+	cHtml += MH_Css_Error()
 	cHtml += MH_Html_Header()
 
 	BLOCKS TO cHtml 	
@@ -387,7 +387,7 @@ function MH_Html_Header()
 retu cHtml
 		
 
-function MH_Css()
+function MH_Css_Error()
 
 	local cHtml := ''	
 

@@ -3562,6 +3562,9 @@ extern MH_PCODECACHED
 extern MH_SESSION
 extern MH_GETURI
 extern MH_REDIRECT
+extern MH_VIEW
+extern MH_CSS
+extern MH_JS
 
 // Trace...
 
