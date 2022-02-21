@@ -9,10 +9,6 @@ function Main()
 			? "<hr><h4>No session active - <a href='session.prg'>Init session session.prg</a>"
 			retu nil
 		endif
-		
-	?  	'<li>Init Session => mh_SessionInit() </li>'
-	
-		mh_SessionInit()
 
 	?  	'<li>Close Session => mh_SessionEnd() </li>'		
 	

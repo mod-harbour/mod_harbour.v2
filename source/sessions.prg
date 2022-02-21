@@ -6,6 +6,7 @@
 #define SESSION_PREFIX  		'sess_'
 #define SESSION_EXPIRED 		3600
 
+
 //	------------------------------------------------------------------------------
 
 function mh_SessionInit( cName, nExpired )
@@ -42,17 +43,22 @@ retu nil
 
 function mh_SessionEnd( cName )
 
-	oSession := MH_Sessions():New( cName ) 
-	
-	if oSession:IsFile()
-		
-		if ! oSession:lIs_Session
-			oSession:Init()
-		endif
+	local oSession 
 
-		oSession:End()		
-		
-	endif
+	
+	if ValType( mh_oSession() ) == 'O' .and. mh_oSession():ClassName() == 'MH_SESSIONS'
+
+	else 
+
+		oSession := MH_Sessions():New( cName ) 
+	
+		oSession:Init()
+	
+		mh_oSession( oSession )		
+	endif	
+	
+	mh_oSession():End()	
+
 	
 retu nil
 
@@ -60,9 +66,26 @@ retu nil
 
 function mh_SessionActive( cName )
 
-	local oSession := MH_Sessions():New( cName ) 
+	local oSession := MH_Sessions():New( cName )
+
+
+	if oSession:Read_CSID()										
+		oSession:Validate()
+	endif
+
 	
-retu oSession:IsFile()
+retu oSession:lIs_Session		
+
+//	------------------------------------------------------------------------------
+
+function mh_Garbage()
+
+	local oSession := MH_Sessions():New() 
+	
+	oSession:Garbage()		
+
+retu nil
+
 
 //	------------------------------------------------------------------------------
 
@@ -73,19 +96,24 @@ CLASS MH_Sessions
 	DATA hSession 					INIT NIL
 	DATA cSID 						INIT ''
 	DATA lIs_Session				INIT .F.
-	DATA lIs_Ready 					INIT .F.
+	DATA lIs_Ready 				INIT .F.
 	
 	DATA cDirTmp					INIT ''
 	DATA cSeed						INIT 'mH_SesSiOn'
+	
+	CLASSDATA lEnd					INIT .F. 
+	
 
 			
-	METHOD  New() 						CONSTRUCTOR
+	METHOD  New() 					CONSTRUCTOR
 	METHOD  Config()
 	METHOD  Init()
-	METHOD  Renew()
+	
 	METHOD  InitData()
 	METHOD  SetId()	
 	METHOD  IsFile()		
+	METHOD  SessionFile()			INLINE if( empty( ::cSID ), '', ::cDirTmp + '/' + SESSION_PREFIX + ::cSID )
+	METHOD  Validate()	
 	
 	METHOD  Data( cKey, uValue )	
 	
@@ -95,7 +123,7 @@ CLASS MH_Sessions
 	
 	METHOD  Info()			
 	METHOD  Garbage()			
-	METHOD  End()			
+	METHOD  End()					INLINE ::lEnd := .t. 
 
 ENDCLASS 
 
@@ -105,7 +133,7 @@ METHOD New( cName, nExpired ) CLASS MH_Sessions
 
 	DEFAULT cName 		TO  ''
 	DEFAULT nExpired 	TO SESSION_EXPIRED	
-	
+
 	::cDirTmp 		:= if( AP_GetEnv( 'MH_PATH_SESSION' ) == '' , AP_GetEnv( 'DOCUMENT_ROOT' ) + '/.sessions', AP_GETENV( 'DOCUMENT_ROOT' ) + AP_GETENV( 'MH_PATH_SESSION' )  )
 	::cSeed 		:= if( AP_GetEnv( 'MH_SESSION_SEED' ) == '', ::cSeed, AP_GetEnv( 'MH_SESSION_SEED' ) )	
 	::cSessionName	:= if( !empty( cName ), Upper(cName) , SESSION_NAME )
@@ -120,7 +148,8 @@ retu Self
 METHOD Init() CLASS MH_Sessions	
 	
 	if ::lIs_Ready
-		::Read()				
+		::Read()	
+		::lEnd := .f. 
 	endif 
 
 retu nil 
@@ -138,6 +167,7 @@ METHOD Config() CLASS MH_Sessions
 		
 	if ! hb_HHasKey( mh_HashConfig(), 'sessions' )
 		mh_HashConfig()[ 'sessions' ] := .f.
+		mh_HashConfig()[ 'sessions_executed' ] := 0
 	endif		
 	
 	if ! mh_HashConfig()[ 'sessions' ] 
@@ -185,25 +215,6 @@ METHOD Config() CLASS MH_Sessions
 
 retu ::lIs_Ready 
 
-//	------------------------------------------------------------------------------
-
-METHOD Renew() CLASS MH_Sessions
-
-	local cSession, cFile
-	
-	if ::lIs_Session
-	
-		//	Actualizamos tiempo de la sesion. Tambien esta a nivel cookie...
-	
-			::hSession[ 'expired' ] := seconds() + SESSION_EXPIRED				
-	
-		//	Renovamos la cookie, cada vez que ejecutamos con el tiempo renovado...
-
-			mh_SetCookie( ::cSessionName, ::cSID, ::nExpired )		
-
-	endif
-	
-retu nil
 
 //	------------------------------------------------------------------------------
 
@@ -291,7 +302,7 @@ METHOD IsFile() CLASS MH_Sessions
 	::Read_CSID()
 
 	if !empty( ::cSID )
-		lIsFile := File( ::cDirTmp + '/' + SESSION_PREFIX + ::cSID )
+		lIsFile := File( ::SessionFile() )
 	endif 
 
 retu lIsFile 
@@ -302,56 +313,15 @@ METHOD Read() CLASS MH_Sessions
 
 	
 	local lCSID 	:= .F.
-	local cFile, cSession, cData
+	local cSession, cData
 
 	::lIs_Session := .F.
 	
-	lCSID := ::Read_CSID()			
-	
-	if lCSID 
+	lCSID := ::Read_CSID()				
+
+	if lCSID 		
 		
-		//	Recuperar contenido del fichero de session...
-		
-		cFile 		:= ::cDirTmp + '/' + SESSION_PREFIX + ::cSID 	
-
-		if File( cFile )
-
-			cSession := hb_Memoread( cFile )
-		
-			//	Si hay contenido Deserializaremos...
-			
-			if ( !empty( cSession ) )
-			
-				cData := hb_blowfishDecrypt( hb_blowfishKey( ::cSeed ), cSession )
-			
-				//	Aui podriem desencryptar cSession... (pendent)
-
-				::hSession := hb_jsondecode( cData )							
-				
-
-				if Valtype( ::hSession ) == 'H' 										
-				
-					//	Validaremos estructura
-					
-					if ( 	hb_HHasKey( ::hSession, 'ip'   	) .and. ;
-							hb_HHasKey( ::hSession, 'sid'  	) .and. ;
-							hb_HHasKey( ::hSession, 'expired' ) .and. ;
-							hb_HHasKey( ::hSession, 'data' 	) )												
-							
-						if  ::hSession[ 'expired' ] >= seconds()  .and. ;
-							::hSession[ 'ip' ] == AP_USERIP() 
-						
-							::lIs_Session 	:= .T.					
-							
-						endif							
-
-					endif	
-				
-				endif
-				
-			endif
-			
-		endif 
+		::Validate()
 	
 	endif
 	
@@ -364,30 +334,117 @@ retu nil
 
 //	------------------------------------------------------------------------------
 
+METHOD Validate() CLASS MH_Sessions
+
+	
+	local cSession, cData
+	
+	::lIs_Session := .f. 
+
+	if File( ::SessionFile() )
+
+	    mh_StartMutex()						
+
+		cSession := hb_Base64Decode( hb_Memoread( ::SessionFile() ) )
+		
+	    mh_EndMutex()	
+	
+		//	Si hay contenido Deserializaremos...
+		
+		if ( !empty( cSession ) )
+		
+			cData := hb_blowfishDecrypt( hb_blowfishKey( ::cSeed ), cSession )
+					
+
+			::hSession := hb_jsondecode( cData )							
+			
+
+			if Valtype( ::hSession ) == 'H' 										
+			
+				//	Validaremos estructura
+				
+				if ( 	hb_HHasKey( ::hSession, 'ip'   	) .and. ;
+						hb_HHasKey( ::hSession, 'sid'  	) .and. ;
+						hb_HHasKey( ::hSession, 'expired' ) .and. ;
+						hb_HHasKey( ::hSession, 'data' 	) )												
+						
+					if  ::hSession[ 'expired' ] >= seconds()  .and. ;
+						::hSession[ 'ip' ] == AP_USERIP() 
+					
+						::lIs_Session 	:= .T.					
+						
+					endif							
+
+				endif	
+			
+			endif
+			
+		endif
+		
+	endif 
+
+
+RETU ::lIs_Session 
+
+
+//	------------------------------------------------------------------------------
+
 METHOD Write() CLASS MH_Sessions
 
-	local cSession, cFile, cKey, cData, lSave 
+	local cSession, cKey, cData, lSave 
 
 	if !::lIs_Session
 		retu .f.
 	endif	
-	
+
+	if ::lEnd
+
 		
-	cSession 	:= hb_jsonencode( ::hSession )
-
-	cKey 		:= hb_blowfishKey( ::cSeed )	
-	cData 		:= hb_blowfishEncrypt( cKey, cSession )	
-	
-	cFile 	 	:= ::cDirTmp + '/' + SESSION_PREFIX + ::cSID 			
-
-   mh_StartMutex()
+		if ( Valtype( ::hSession ) == 'H'  )
+		
+			//	Enviaremos la cookie con tiempo expirado. Esto la eliminara y no se volverá a enviar...
 			
-	lSave := hb_memowrit( cFile, cData ) 	
+				mh_Setcookie( ::cSessionName, ::cSID, -1 )
+			
+			//	Eliminamos Session de disco				
+				
+				fErase( ::SessionFile() )
+				
+		endif
+		
+		//	Eliminamos variable GLOBAL de Session
+		
+			::hSession  	:= NIL
+			::cSID			:= ''
+			::lIs_Session	:= .F.	
+		
+	else 	
 
-   mh_EndMutex()
-	
-	if lSave
-		::Renew()	
+		::hSession[ 'sid'    ] 	:= ::cSID
+		::hSession[ 'expired' ] 	:= seconds() + SESSION_EXPIRED	
+		
+		cSession 	:= hb_jsonencode( ::hSession )
+
+		cKey 		:= hb_blowfishKey( ::cSeed )	
+		cData 		:= hb_blowfishEncrypt( cKey, cSession )					
+
+	    mh_StartMutex()
+				
+		lSave := hb_memowrit( ::SessionFile(), hb_Base64Encode( cData ) ) 	
+
+		mh_HashConfig()[ 'sessions_executed' ]++ 
+		
+	    mh_EndMutex()
+		
+		mh_Setcookie( ::cSessionName, ::cSID, ::nExpired )				
+		
+		if mh_HashConfig()[ 'sessions_executed' ] > 1000	// Add var env. ? p.e. MH_SESSION_MAX_FILES ? 
+			::Garbage()
+			 mh_StartMutex()
+			 mh_HashConfig()[ 'sessions_executed' ] := 0
+			 mh_EndMutex()
+		endif		
+
 	endif
 	
 retu nil
@@ -419,50 +476,19 @@ retu hInfo
 
 METHOD Garbage( dMaxDate ) CLASS MH_Sessions
 
-	local aFiles 	:= Directory( ::cDirTmp + '*.*' )
+	local aFiles 	:= Directory( ::cDirTmp + '/*.*' )
 	local nFiles 	:= len( aFiles )
 	local nI 
-	
-	DEFAULT dMaxDate TO Date()-1
+
+	DEFAULT dMaxDate TO Date()-2
 	
 	for nI := 1 to nFiles 
 	
 		if aFiles[nI][3] <= dMaxDate 				
-			fErase( ::cDirTmp + aFiles[nI][1] )
+			fErase( ::cDirTmp + '/' + aFiles[nI][1] )			
 		endif
 	next	
 	
 retu nil
 
 //	------------------------------------------------------------------------------
-
-METHOD End() CLASS MH_Sessions
-
-	local cFile 	
-
-	if !::lIs_Session
-		retu nil 
-	endif		
-
-
-	if ( Valtype( ::hSession ) == 'H'  )
-	
-		//	Enviaremos la cookie con tiempo expirado. Esto la eliminara y no se volverá a enviar...
-		
-			mh_Setcookie( ::cSessionName, ::cSID, -1 )
-		
-		//	Eliminamos Session de disco
-	
-			cFile := ::cDirTmp + '/' + SESSION_PREFIX + ::cSID 
-			
-			fErase( cFile )
-			
-	endif
-	
-	//	Eliminamos variable GLOBAL de Session
-	
-		::hSession  	:= NIL
-		::cSID			:= ''
-		::lIs_Session	:= .F.
-	
-retu nil

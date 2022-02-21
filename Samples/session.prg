@@ -8,7 +8,7 @@ function main()
 	? 	"<h3>"
 	?  	"<li>Init Session => mh_SessionInit() </li>"
 	
-		mh_SessionInit()		
+		mh_SessionInit( nil, 5 )		
 
 
 	?	"<li>Show vars"
