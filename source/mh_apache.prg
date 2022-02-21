@@ -352,73 +352,73 @@ FUNCTION MH_LoadFile( cFile )
    ENDIF
 
 
-RETU ''
+   RETU ''
 
 // ----------------------------------------------------------------//
 
 FUNCTION MH_View( cFile, ... )
 
-   LOCAL cPath_File 	:= hb_GetEnv( "PRGPATH" ) + '/' + cFile
-   LOCAL cCode 		:= ''
+   LOCAL cPath_File  := hb_GetEnv( "PRGPATH" ) + '/' + cFile
+   LOCAL cCode   := ''
 
    IF "Linux" $ OS()
       cPath_File = StrTran( cPath_File, '\', '/' )
    ENDIF
-   
+
    IF File( cPath_File )
-   
-		cCode := mh_ReplaceBlocks( hb_MemoRead( cPath_File ), '{{', '}}', '', ... )										
+
+      cCode := mh_ReplaceBlocks( hb_MemoRead( cPath_File ), '{{', '}}', '', ... )
 
    ELSE
-		MH_DoError( "MH_View() file not found: " + cPath_File  )
-   ENDIF	
+      MH_DoError( "MH_View() file not found: " + cPath_File  )
+   ENDIF
 
-retu cCode
+   RETU cCode
 
 // ----------------------------------------------------------------//
 
-function mh_Css( cFile )
+FUNCTION mh_Css( cFile )
 
-   LOCAL cPath_File 	:= hb_GetEnv( "PRGPATH" ) + '/' + cFile
-   LOCAL cCode 		:= ''
+   LOCAL cPath_File  := hb_GetEnv( "PRGPATH" ) + '/' + cFile
+   LOCAL cCode   := ''
 
    IF "Linux" $ OS()
       cPath_File = StrTran( cPath_File, '\', '/' )
    ENDIF
-   
-   IF File( cPath_File )
-   
-		cCode := '<style>' 
-		cCode += hb_MemoRead( cPath_File )
-		cCode += '</style>'      		
-   ELSE
-		MH_DoError( "MH_Css() file not found: " + cPath_File  )
-   ENDIF	
 
-retu cCode
+   IF File( cPath_File )
+
+      cCode := '<style>'
+      cCode += hb_MemoRead( cPath_File )
+      cCode += '</style>'
+   ELSE
+      MH_DoError( "MH_Css() file not found: " + cPath_File  )
+   ENDIF
+
+   RETU cCode
 
 
 // ----------------------------------------------------------------//
 
-function mh_Js( cFile )
+FUNCTION mh_Js( cFile )
 
-   LOCAL cPath_File 	:= hb_GetEnv( "PRGPATH" ) + '/' + cFile
-   LOCAL cCode 		:= ''
+   LOCAL cPath_File  := hb_GetEnv( "PRGPATH" ) + '/' + cFile
+   LOCAL cCode   := ''
 
    IF "Linux" $ OS()
       cPath_File = StrTran( cPath_File, '\', '/' )
    ENDIF
-   
-   IF File( cPath_File )
-   
-		cCode := '<script>'
-		cCode += hb_MemoRead( cPath_File )
-		cCode += '</script>'     		
-   ELSE
-		MH_DoError( "MH_Js() file not found: " + cPath_File  )
-   ENDIF	
 
-retu cCode
+   IF File( cPath_File )
+
+      cCode := '<script>'
+      cCode += hb_MemoRead( cPath_File )
+      cCode += '</script>'
+   ELSE
+      MH_DoError( "MH_Js() file not found: " + cPath_File  )
+   ENDIF
+
+   RETU cCode
 
 
 // ----------------------------------------------------------------//
@@ -567,29 +567,29 @@ RETURN NIL
 
 // ----------------------------------------------------------------//
 
-function mh_GetUri()
+FUNCTION mh_GetUri()
 
-	local cUri 
+   LOCAL cUri
 
-	if !empty( ap_GetEnv('HTTPS') ) .and. ('on' == ap_GetEnv('HTTPS') )
-		cUri := 'https://'
-	else 
-		cUri := 'http://'
-	endif
-	
-	cUri += ap_GetEnv('HTTP_HOST') + hb_FNameDir( ap_GetEnv( 'SCRIPT_NAME' ) )	
-	
-retu cUri 
+   IF !Empty( ap_GetEnv( 'HTTPS' ) ) .AND. ( 'on' == ap_GetEnv( 'HTTPS' ) )
+      cUri := 'https://'
+   ELSE
+      cUri := 'http://'
+   ENDIF
+
+   cUri += ap_GetEnv( 'HTTP_HOST' ) + hb_FNameDir( ap_GetEnv( 'SCRIPT_NAME' ) )
+
+   RETU cUri
 
 // ----------------------------------------------------------------//
 
-function mh_Redirect( cUrl )
-	
-	ap_HeadersOutSet( "Location", cUrl  )			
-		
-	mh_ExitStatus( 302 )
+FUNCTION mh_Redirect( cUrl )
 
-retu nil 
+   ap_HeadersOutSet( "Location", cUrl  )
+
+   mh_ExitStatus( 302 )
+
+   RETU NIL
 
 // ----------------------------------------------------------------//
 
@@ -617,9 +617,9 @@ void * pmh_EndMutex;
 
 #ifdef _WINDOWS_
 
-   #include <windows.h>
+#include <windows.h>
 
-   BOOL APIENTRY DllMain( HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserved ) {
+BOOL APIENTRY DllMain( HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserved ) {
    hModule = hModule;
    lpReserved = lpReserved;
 
@@ -641,23 +641,18 @@ void * pmh_EndMutex;
       break;
    }
    return TRUE;
-   }
+}
+
 #else
 
-   void DLL_PROCESS_ATTACH( void ) __attribute__((constructor));
-   void DLL_PROCESS_DETACH( void ) __attribute__((destructor));
-
-   void DLL_PROCESS_ATTACH( void ) {
-      if( ! hb_vmIsActive() ) {
-         hb_vmInit( HB_TRUE );
-         hPcodeCached   = hb_hashNew(NULL);
-         hHashModules   = hb_hashNew(NULL);
-      }
-   }
-
-   void DLL_PROCESS_DETACH( void ) {
-      hb_vmQuit();
-   }
+HB_EXPORT_ATTR void mh_init( void )
+{
+   if( ! hb_vmIsActive() ) {
+      hb_vmInit( HB_TRUE );
+      hPcodeCached   = hb_hashNew(NULL);
+      hHashModules   = hb_hashNew(NULL);
+   };
+}
 
 #endif
 
