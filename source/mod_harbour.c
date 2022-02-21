@@ -44,7 +44,7 @@ static _mh_config mh_config;
 PHB_ITEM hHash;
 PHB_ITEM hHashConfig;
 
-typedef int (*PMH_APACHE)(void *pRequestRec, void *phHash, void *phHashConfig, void *pmh_StartMutex, void *pmh_EndMutex);
+typedef void (*PMH_APACHE)(void *pRequestRec, void *phHash, void *phHashConfig, void *pmh_StartMutex, void *pmh_EndMutex);
 
 #ifdef _WINDOWS_
 HMODULE libmhapache[NUM_VMS];
