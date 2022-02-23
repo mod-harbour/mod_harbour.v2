@@ -1,5 +1,5 @@
 /*
-** mh_apache.prg -- Apache harbour module V2.1
+** mh_apache.prg -- Apache harbour module V2.1.1
 ** (c) DHF, 2020-2022
 ** MIT license
 */
@@ -619,53 +619,33 @@ void * pmh_EndMutex;
 
 #include <windows.h>
 
-BOOL APIENTRY DllMain( HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserved ) {
-   hModule = hModule;
-   lpReserved = lpReserved;
-
-   switch( ul_reason_for_call ) {
-   case DLL_PROCESS_ATTACH:
-      hb_vmInit( HB_TRUE );
-      hPcodeCached   = hb_hashNew(NULL);
-      hHashModules   = hb_hashNew(NULL);
-      break;
-
-   case DLL_THREAD_ATTACH:
-      break;
-
-   case DLL_THREAD_DETACH:
-      break;
-
-   case DLL_PROCESS_DETACH:
-      hb_vmQuit();
-      break;
-   }
-   return TRUE;
-}
-
-#else
-
-HB_EXPORT_ATTR void mh_init( void )
-{
-   if( ! hb_vmIsActive() ) {
-      hb_vmInit( HB_TRUE );
-      hPcodeCached   = hb_hashNew(NULL);
-      hHashModules   = hb_hashNew(NULL);
-   };
-}
-
 #endif
 
 //----------------------------------------------------------------//
 
-HB_EXPORT_ATTR void mh_apache( request_rec * _pRequestRec, void * _phHash, void * _phHashConfig, void * _pmh_StartMutex, void * _pmh_EndMutex )
+HB_EXPORT_ATTR void mh_init( void * _phHash, void * _phHashConfig, void * _pmh_StartMutex, void * _pmh_EndMutex )
+{
+   if( ! hb_vmIsActive() ) {
+      hb_vmInit( HB_TRUE );
+      if ( _phHash == NULL ) {
+          phHash = _phHash;
+          phHashConfig = _phHashConfig;
+          phHash = hb_hashNew(NULL);
+          phHashConfig = hb_hashNew(NULL);
+      };
+      hPcodeCached   = hb_hashNew(NULL);
+      hHashModules   = hb_hashNew(NULL);
+      pmh_StartMutex = _pmh_StartMutex;
+      pmh_EndMutex = _pmh_EndMutex;
+   };
+}
+
+//----------------------------------------------------------------//
+
+HB_EXPORT_ATTR int mh_apache( request_rec * _pRequestRec )
 {
    szBody = NULL;
    pRequestRec = _pRequestRec;
-   phHash = _phHash;
-   phHashConfig = _phHashConfig;
-   pmh_StartMutex = _pmh_StartMutex;
-   pmh_EndMutex = _pmh_EndMutex;
 
    hb_vmThreadInit( NULL );
    HB_FUNC_EXEC(MH_RUNNER);
