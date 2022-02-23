@@ -44,12 +44,14 @@ static _mh_config mh_config;
 PHB_ITEM hHash;
 PHB_ITEM hHashConfig;
 
-typedef int (*PMH_APACHE)(void *pRequestRec, void *phHash, void *phHashConfig, void *pmh_StartMutex, void *pmh_EndMutex);
+typedef void (*PMH_APACHE)(void *pRequestRec, void *phHash, void *phHashConfig, void *pmh_StartMutex, void *pmh_EndMutex);
 
 #ifdef _WINDOWS_
 HMODULE libmhapache[NUM_VMS];
 #else
 static void *libmhapache[NUM_VMS];
+typedef void ( * PMH_INIT )( void );
+int CopyFile( const char * from, const char * to, int iOverWrite );
 #endif
 
 static int vm[NUM_VMS] = {0};
@@ -128,12 +130,21 @@ static int mod_harbourV2_post_config(apr_pool_t *pconf, apr_pool_t *plog,
    apr_pool_cleanup_register(pconf, NULL, shm_cleanup_wrapper,
                              apr_pool_cleanup_null);
 
-   if (!hb_fsFileExists(mh_config.mh_library))
+   FILE *file;
+   if (!(file = fopen(mh_config.mh_library, "r")))
    {
       ap_log_error(APLOG_MARK, APLOG_CRIT, rs, s, "MH_MESSAGE: MH_LIBRARY %s not found", mh_config.mh_library);
-
       return HTTP_INTERNAL_SERVER_ERROR;
    }
+
+   fclose(file);
+
+#ifndef _WINDOWS_
+   for (int i = 0; i < mh_config.mh_nVms; i++)
+   {
+      CopyFile(mh_config.mh_library, apr_psprintf(pconf, "%s/%s%d.so", szTempPath, "libmhapache", i), 0 );
+   }
+#endif
 
    return OK;
 }
@@ -144,7 +155,9 @@ static void mod_harbourV2_child_init(apr_pool_t *p, server_rec *s)
 {
    apr_status_t rs;
    int i;
-
+#ifndef _WINDOWS_
+   PMH_INIT _mh_init = NULL;
+#endif
    rs = apr_global_mutex_child_init(&harbour_mutex,
                                     apr_global_mutex_lockfile(harbour_mutex),
                                     p);
@@ -175,17 +188,30 @@ static void mod_harbourV2_child_init(apr_pool_t *p, server_rec *s)
 
    for (i = 0; i < mh_config.mh_nVms; i++)
    {
+      vm[i] == 0;
 #ifdef _WINDOWS_
-      apr_file_copy(mh_config.mh_library, apr_psprintf(p, "%s/%s%d.dll", szTempPath, "libmhapache", i), APR_FILE_SOURCE_PERMS, p);
+      CopyFile(mh_config.mh_library, apr_psprintf(p, "%s/%s%d.dll", szTempPath, "libmhapache", i), 0 );
       libmhapache[i] = LoadLibrary(apr_psprintf(p, "%s/%s%d.dll", szTempPath, "libmhapache", i));
+      if ( libmhapache[i] == NULL ) {
+        ap_log_error(APLOG_MARK, APLOG_NOTICE, rs, s, "MH_MESSAGE: LoadLibrary error: %s", GetLastError());
+      } else {
+        ap_log_error(APLOG_MARK, APLOG_NOTICE, rs, s, "MH_MESSAGE: VM %d INIT", i );
+      };
 #else
-      apr_file_copy(mh_config.mh_library, apr_psprintf(p, "%s/%s%d.so", szTempPath, "libmhapache", i), APR_FILE_SOURCE_PERMS, p);
-      libmhapache[i] = dlopen(apr_psprintf(p, "%s/%s%d.so", szTempPath, "libmhapache", i ), RTLD_NOW);
+      libmhapache[i] = dlopen(apr_psprintf(p, "%s/%s%d.so", szTempPath, "libmhapache", i ), RTLD_LAZY);
+      if ( libmhapache[i] == NULL ) {
+        ap_log_error(APLOG_MARK, APLOG_NOTICE, rs, s, "MH_MESSAGE: dlopen error: %s", dlerror());
+      } else {
+        ap_log_error(APLOG_MARK, APLOG_NOTICE, rs, s, "MH_MESSAGE: VM %d INIT", i );
+      };
+      _mh_init = dlsym( libmhapache[i], "mh_init" );
+      _mh_init();
 #endif
    }
-
+#ifdef _WINDOWS_
    hHash = hb_hashNew(NULL);
    hHashConfig = hb_hashNew(NULL);
+#endif
 }
 
 //----------------------------------------------------------------//
@@ -220,12 +246,13 @@ static int mod_harbourV2_handler(request_rec *r)
    char *szTempFileName = NULL;
    unsigned int dwThreadId;
    int nUsedVm = -1;
-   int i, iRet = OK;
+   int i;
 
 #ifdef _WINDOWS_
    HMODULE libmhapache_vmx = NULL;
 #else
    void *libmhapache_vmx = NULL;
+   PMH_INIT _mh_init = NULL;
 #endif
 
    if (strcmp(r->handler, "harbour"))
@@ -271,6 +298,8 @@ static int mod_harbourV2_handler(request_rec *r)
       libmhapache_vmx = LoadLibrary(szTempFileName);
 #else
       libmhapache_vmx = dlopen(szTempFileName, RTLD_LAZY);
+      _mh_init = dlsym( libmhapache_vmx, "mh_init" );
+      _mh_init();
 #endif
 
 #ifdef _WINDOWS_
@@ -282,7 +311,7 @@ static int mod_harbourV2_handler(request_rec *r)
 
    mh_EndMutex();
 
-   iRet = _mh_apache(r, (PHB_ITEM *)hHash, (PHB_ITEM *)hHashConfig, (void *)mh_StartMutex, (void *)mh_EndMutex);
+   _mh_apache(r, (PHB_ITEM *)hHash, (PHB_ITEM *)hHashConfig, (void *)mh_StartMutex, (void *)mh_EndMutex);
 
    if (nUsedVm != -1)
    {
@@ -298,7 +327,7 @@ static int mod_harbourV2_handler(request_rec *r)
       remove(szTempFileName);
 #endif
    }
-   return iRet;
+   return OK;
 }
 
 //----------------------------------------------------------------//
@@ -321,3 +350,66 @@ module AP_MODULE_DECLARE_DATA mod_harbourV2_module = {
     NULL,
     mod_harbourV2_params,
     mod_harbourV2_register_hooks};
+
+//----------------------------------------------------------------//
+#ifndef _WINDOWS_
+int CopyFile( const char * from, const char * to, int iOverWrite )
+{
+    int fd_to, fd_from;
+    char buf[ 4096 ];
+    ssize_t nread;
+    int saved_errno;
+
+    iOverWrite = iOverWrite;
+
+    fd_from = open( from, O_RDONLY );
+    if( fd_from < 0 )
+        return -1;
+
+    fd_to = open( to, O_WRONLY | O_CREAT | O_EXCL, 0666 );
+    if( fd_to < 0 )
+        goto out_error;
+
+    while( nread = read( fd_from, buf, sizeof buf ), nread > 0 )
+    {
+        char * out_ptr = buf;
+        ssize_t nwritten;
+
+        do {
+            nwritten = write( fd_to, out_ptr, nread );
+
+            if( nwritten >= 0 )
+            {
+                nread -= nwritten;
+                out_ptr += nwritten;
+            }
+            else if( errno != EINTR )
+            {
+                goto out_error;
+            }
+        } while( nread > 0 );
+    }
+
+    if( nread == 0 )
+    {
+        if( close( fd_to ) < 0 )
+        {
+            fd_to = -1;
+            goto out_error;
+        }
+        close( fd_from );
+
+        return 0;
+    }
+
+  out_error:
+    saved_errno = errno;
+
+    close( fd_from );
+    if( fd_to >= 0 )
+        close( fd_to );
+
+    errno = saved_errno;
+    return errno;
+}
+#endif
