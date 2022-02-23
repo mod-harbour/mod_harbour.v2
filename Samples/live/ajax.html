@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<title>Test ajax</title>
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+</head>
+<body>
+	<button onclick="test1()">Test 1</button>
+	<button onclick="test2()">Test 2</button>
+</body>
+
+<script>
+
+	function test1(){
+
+		var oPar = new Object()
+			oPar[ 'action' ] = 'test1'
+			oPar[ 'name' ] = 'Marcelo'
+			oPar[ 'age' ] = 18
+		
+		Send( oPar )				
+	}
+	
+	function test2(){
+
+		var oPar = new Object()
+			oPar[ 'action' ] = 'test2'
+			oPar[ 'city' ] = 'New York'			
+		
+		Send( oPar )		
+	}
+
+	function Send( oParam ) {
+	
+		$.ajax({
+		   url: 'funciones.prg',
+		   type: 'POST',
+		   data: oParam
+		})
+		.done(function (response) {
+		   console.log("success", respsonse);		   
+		})
+		.fail(function () {
+			console.log("error");
+		})
+		.always(function () {
+			  console.log("complete");
+		 });	
+	
+	}		
+
+</script>

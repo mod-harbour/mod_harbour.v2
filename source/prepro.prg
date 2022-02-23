@@ -1,5 +1,7 @@
 /*
-**  prepro.prg -- Execution module
+** prepro.prg -- Execution module
+** Developed by Antonio Linares 
+** MIT license https://github.com/FiveTechSoft/mod_harbour/blob/master/LICENSE
 **
 */
 
