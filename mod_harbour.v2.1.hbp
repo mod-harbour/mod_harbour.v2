@@ -1,4 +1,4 @@
--hbdynvm
+-hbdyn
 {msvc64}-ooutput/win64/mod_harbour.v2.so
 {msvc}-ooutput/win32/mod_harbour.v2.so
 {gcc}-o./output/linux/mod_harbour.v2.so
