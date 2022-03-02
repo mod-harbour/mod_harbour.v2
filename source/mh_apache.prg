@@ -206,7 +206,7 @@ FUNCTION mh_RequestMaxTime( pThread, nTime )
 
    hb_idleSleep( nTime )      
 
-   mh_ExitStatus( 504 )
+   mh_ExitStatus( 508 )
    
    while( hb_threadQuitRequest( pThread ) )
       hb_idleSleep( 0.01 )
