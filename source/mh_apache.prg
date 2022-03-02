@@ -18,28 +18,27 @@ THREAD STATIC ts_cBuffer_Out  := ''
 THREAD STATIC ts_hHrbs
 THREAD STATIC ts_aFiles
 THREAD STATIC ts_bError
-THREAD STATIC ts_t_hTimer
 THREAD STATIC ts_hConfig
 THREAD STATIC ts_oSession
 STATIC hPP
 
 // SetEnv Var config. ----------------------------------------
-// MH_CACHE    - Use PcodeCached
-// MH_TIMEOUT   - Timeout for thread
-// MH_PATH_LOG   -  Default HB_GetEnv( 'PRGPATH' )
-// MH_PATH_SESSION  -  Default HB_GetEnv( 'DOCUMENT_ROOT' ) + '/.sessions'
-// MH_SESSION_SEED -  Default Session Seed
-// MH_INITPROCESS  - Init modules at begin of app
-// MH_PHPTEMP        -   Path to PHP prepro temp folder. Note: Add write access to folder.
+// MH_CACHE          - Use PcodeCached
+// MH_TIMEOUT        - Timeout for thread( must be >= 15 sec )
+// MH_PATH_LOG       - Default HB_GetEnv( 'PRGPATH' )
+// MH_PATH_SESSION   - Default HB_GetEnv( 'DOCUMENT_ROOT' ) + '/.sessions'
+// MH_SESSION_SEED   - Default Session Seed
+// MH_INITPROCESS    - Init modules at begin of app
+// MH_PHPTEMP        - Path to PHP prepro temp folder. Note: Add write access to folder.
 // ------------------------------------------------------------
 
 FUNCTION Main()
 
-   MH_PPRules()
+   mh_PPRules()
 
 RETURN NIL
 
-FUNCTION MH_PPRules()
+FUNCTION mh_PPRules()
 
    LOCAL cOs := OS()
    LOCAL n, aPair, cExt
@@ -82,7 +81,7 @@ RETURN hPP
 
 // ------------------------------------------------------------------ //
 
-FUNCTION MH_Runner()
+FUNCTION mh_Runner()
 
    LOCAL cFileName, cFilePath, pThreadWait, tFilename, cCode, cCodePP, oHrb
    LOCAL disablecache := .F.
@@ -98,13 +97,13 @@ FUNCTION MH_Runner()
    ts_hConfig   := { => }
 
    ts_hConfig[ 'cache' ] := AP_GetEnv( 'MH_CACHE' ) == '1' .OR. Lower( AP_GetEnv( 'MH_CACHE' ) ) == 'yes'
-   ts_hConfig[ 'timeout' ] := Max( Val( AP_GetEnv( 'MH_TIMEOUT' ) ), 15 )
+   ts_hConfig[ 'timeout' ] := Max( Val( AP_GetEnv( 'MH_TIMEOUT' ) ), 15 ) // 15 Sec max   
 
    // ------------------------
 
-   ErrorBlock( {| oError | MH_ErrorSys( oError ), Break( oError ) } )
+   ErrorBlock( {| oError | mh_ErrorSys( oError ), Break( oError ) } )
 
-   ts_t_hTimer = hb_idleAdd( {|| MH_RequestMaxTime( hb_threadSelf(), ts_hConfig[ 'timeout' ] ) }  )
+   pThreadWait := hb_threadStart( @mh_RequestMaxTime(), hb_threadSelf(), ts_hConfig[ 'timeout' ] ) 
 
    cFileName = ap_FileName()
 
@@ -132,19 +131,19 @@ FUNCTION MH_Runner()
 
             hb_FGetDateTime( cFilename, @tFilename )
 
-            IF ( iif( hb_HHasKey( MH_PcodeCached(), cFilename ), tFilename > MH_PcodeCached()[ cFilename ][ 2 ], .T. ) )
+            IF ( iif( hb_HHasKey( mh_PcodeCached(), cFilename ), tFilename > mh_PcodeCached()[ cFilename ][ 2 ], .T. ) )
 
                oHrb := mh_Compile( cCode )
 
                IF ! Empty( oHrb )
 
-                  MH_PcodeCached()[ cFilename ] = { oHrb, tFilename }
+                  mh_PcodeCached()[ cFilename ] = { oHrb, tFilename }
 
                ENDIF
 
             ELSE
 
-               oHrb = MH_PcodeCached()[ cFilename ][ 1 ]
+               oHrb = mh_PcodeCached()[ cFilename ][ 1 ]
 
             ENDIF
 
@@ -157,7 +156,7 @@ FUNCTION MH_Runner()
 
          ELSE
 
-            MH_Execute( cCode, ap_Args() )
+            mh_Execute( cCode, ap_Args() )
 
          ENDIF
 
@@ -181,17 +180,17 @@ FUNCTION MH_Runner()
 
    ENDIF
 
-RETURN mh_ExitStatus()
+RETURN 
 
 // ----------------------------------------------------------------//
 
-FUNCTION MH_Config()
+FUNCTION mh_Config()
 
 RETURN ts_hConfig
 
 // ----------------------------------------------------------------//
 
-FUNCTION MH_oSession( o )
+FUNCTION mh_oSession( o )
 
    IF ValType( o ) == 'O'
       ts_oSession := o
@@ -201,20 +200,16 @@ RETURN ts_oSession
 
 // ----------------------------------------------------------------//
 
-FUNCTION MH_RequestMaxTime( pThread, nTime )
+FUNCTION mh_RequestMaxTime( pThread, nTime )
 
-   sec := Seconds()
+   hb_idleSleep( nTime )      
 
-   DO WHILE ( Seconds() - sec < nTime )
-      hb_idleSleep( 0.01 )
-   ENDDO
-
-   mh_ExitStatus( 408 )
-
+   mh_ExitStatus( 504 )
+   
    while( hb_threadQuitRequest( pThread ) )
       hb_idleSleep( 0.01 )
    ENDDO
-
+  
 RETURN
 
 
@@ -270,7 +265,7 @@ RETURN
  tenga en uso.
 */
 
-FUNCTION MH_LoadHrb( cHrbFile_or_oHRB )
+FUNCTION mh_LoadHrb( cHrbFile_or_oHRB )
 
    LOCAL lResult  := .F.
    LOCAL cType  := ValType( cHrbFile_or_oHRB )
@@ -289,7 +284,7 @@ FUNCTION MH_LoadHrb( cHrbFile_or_oHRB )
          ENDIF
       ELSE
 
-         MH_DoError( "MH_LoadHrb() file not found: " + cFile  )
+         mh_DoError( "MH_LoadHrb() file not found: " + cFile  )
 
       ENDIF
 
@@ -303,7 +298,7 @@ FUNCTION MH_LoadHrb( cHrbFile_or_oHRB )
 
 // ----------------------------------------------------------------//
 
-FUNCTION MH_LoadHrb_Clear()
+FUNCTION mh_LoadHrb_Clear()
 
    LOCAL n
 
@@ -317,7 +312,7 @@ FUNCTION MH_LoadHrb_Clear()
 
 // ----------------------------------------------------------------//
 
-FUNCTION MH_LoadHrb_Show()
+FUNCTION mh_LoadHrb_Show()
 
    LOCAL n
 
@@ -330,7 +325,7 @@ FUNCTION MH_LoadHrb_Show()
 
 // ----------------------------------------------------------------//
 
-FUNCTION MH_LoadFile( cFile )
+FUNCTION mh_LoadFile( cFile )
 
    LOCAL cPath_File := hb_GetEnv( "PRGPATH" ) + '/' + cFile
 
@@ -348,7 +343,7 @@ FUNCTION MH_LoadFile( cFile )
       RETURN hb_MemoRead( cPath_File )
 
    ELSE
-      MH_DoError( "MH_LoadFile() file not found: " + cPath_File  )
+      mh_DoError( "mh_LoadFile() file not found: " + cPath_File  )
    ENDIF
 
 
@@ -356,7 +351,7 @@ FUNCTION MH_LoadFile( cFile )
 
 // ----------------------------------------------------------------//
 
-FUNCTION MH_View( cFile, ... )
+FUNCTION mh_View( cFile, ... )
 
    LOCAL cPath_File  := hb_GetEnv( "PRGPATH" ) + '/' + cFile
    LOCAL cCode   := ''
@@ -370,7 +365,7 @@ FUNCTION MH_View( cFile, ... )
       cCode := mh_ReplaceBlocks( hb_MemoRead( cPath_File ), '{{', '}}', '', ... )
 
    ELSE
-      MH_DoError( "MH_View() file not found: " + cPath_File  )
+      mh_DoError( "mh_View() file not found: " + cPath_File  )
    ENDIF
 
    RETU cCode
@@ -392,7 +387,7 @@ FUNCTION mh_Css( cFile )
       cCode += hb_MemoRead( cPath_File )
       cCode += '</style>'
    ELSE
-      MH_DoError( "MH_Css() file not found: " + cPath_File  )
+      mh_DoError( "mh_Css() file not found: " + cPath_File  )
    ENDIF
 
    RETU cCode
@@ -415,7 +410,7 @@ FUNCTION mh_Js( cFile )
       cCode += hb_MemoRead( cPath_File )
       cCode += '</script>'
    ELSE
-      MH_DoError( "MH_Js() file not found: " + cPath_File  )
+      mh_DoError( "mh_Js() file not found: " + cPath_File  )
    ENDIF
 
    RETU cCode
@@ -423,7 +418,7 @@ FUNCTION mh_Js( cFile )
 
 // ----------------------------------------------------------------//
 
-FUNCTION MH_ErrorSys( oError, cCode, cCodePP )
+FUNCTION mh_ErrorSys( oError, cCode, cCodePP )
 
    LOCAL hError
 
@@ -436,7 +431,7 @@ FUNCTION MH_ErrorSys( oError, cCode, cCodePP )
 
 // Recover data info error
 
-   hError := MH_ErrorInfo( oError, cCode, cCodePP )
+   hError := mh_ErrorInfo( oError, cCode, cCodePP )
 
 
    IF ValType( ts_bError ) == 'B'
@@ -445,7 +440,7 @@ FUNCTION MH_ErrorSys( oError, cCode, cCodePP )
 
    ELSE
 
-      MH_ErrorShow( hError )
+      mh_ErrorShow( hError )
 
    ENDIF
 
@@ -461,7 +456,7 @@ FUNCTION MH_ErrorSys( oError, cCode, cCodePP )
 
    RETU NIL
 
-FUNCTION MH_ErrorBlock( bBlockError )
+FUNCTION mh_ErrorBlock( bBlockError )
 
    ts_bError := bBlockError
 
@@ -469,7 +464,7 @@ FUNCTION MH_ErrorBlock( bBlockError )
 
 // ----------------------------------------------------------------//
 
-FUNCTION MH_DoError( cDescription, cSubsystem, nSubCode )
+FUNCTION mh_DoError( cDescription, cSubsystem, nSubCode )
 
    LOCAL oError := ErrorNew()
 
@@ -486,7 +481,7 @@ RETURN NIL
 
 // ----------------------------------------------------------------//
 
-FUNCTION MH_InitProcess()
+FUNCTION mh_InitProcess()
 
    LOCAL cPath, cPathFile, cFile, cModules
    LOCAL aModules  := {}
@@ -525,7 +520,7 @@ FUNCTION MH_InitProcess()
 
                   CASE cExt == '.prg'
 
-                     oHrb := MH_Compile( hb_MemoRead( cPathFile ) )
+                     oHrb := mh_Compile( hb_MemoRead( cPathFile ) )
 
                      IF ! Empty( oHrb )
 
@@ -551,7 +546,7 @@ FUNCTION MH_InitProcess()
 
 // Error ?
 
-               MH_DoError( "MH_InitProcess() file not found: " + cPathFile  )
+               mh_DoError( "mh_InitProcess() file not found: " + cPathFile  )
 
             ENDIF
 
@@ -561,7 +556,7 @@ FUNCTION MH_InitProcess()
 
    ENDIF
 
-   MH_AddPPRules()
+   mh_AddPPRules()
 
 RETURN NIL
 
@@ -642,7 +637,7 @@ HB_EXPORT_ATTR void mh_init( void * _phHash, void * _phHashConfig, void * _pmh_S
 
 //----------------------------------------------------------------//
 
-HB_EXPORT_ATTR int mh_apache( request_rec * _pRequestRec )
+HB_EXPORT_ATTR void mh_apache( request_rec * _pRequestRec )
 {
    szBody = NULL;
    pRequestRec = _pRequestRec;
