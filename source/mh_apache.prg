@@ -97,13 +97,15 @@ FUNCTION mh_Runner()
    ts_hConfig   := { => }
 
    ts_hConfig[ 'cache' ] := AP_GetEnv( 'MH_CACHE' ) == '1' .OR. Lower( AP_GetEnv( 'MH_CACHE' ) ) == 'yes'
-   ts_hConfig[ 'timeout' ] := Max( Val( AP_GetEnv( 'MH_TIMEOUT' ) ), 15 ) // 15 Sec max   
+   ts_hConfig[ 'timeout' ] := Val( AP_GetEnv( 'MH_TIMEOUT' ) ) // 15 Sec max   
 
    // ------------------------
 
    ErrorBlock( {| oError | mh_ErrorSys( oError ), Break( oError ) } )
 
-   pThreadWait := hb_threadStart( @mh_RequestMaxTime(), hb_threadSelf(), ts_hConfig[ 'timeout' ] ) 
+   if ( ts_hConfig[ 'timeout' ] != 0 )
+      pThreadWait := hb_threadStart( @mh_RequestMaxTime(), hb_threadSelf(), ts_hConfig[ 'timeout' ] ) 
+   endif
 
    cFileName = ap_FileName()
 
