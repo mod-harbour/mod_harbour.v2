@@ -83,7 +83,7 @@ RETURN hPP
 
 FUNCTION mh_Runner()
 
-   LOCAL cFileName, cFilePath, pThreadWait, tFilename, cCode, cCodePP, oHrb
+   LOCAL cFileName, cFilePath, pThreadWait, tFilename, cCode, cCodePP, oHrb, cExt
    LOCAL disablecache := .F.
 
    // Init thread statics vars
@@ -97,15 +97,15 @@ FUNCTION mh_Runner()
    ts_hConfig   := { => }
 
    ts_hConfig[ 'cache' ] := AP_GetEnv( 'MH_CACHE' ) == '1' .OR. Lower( AP_GetEnv( 'MH_CACHE' ) ) == 'yes'
-   ts_hConfig[ 'timeout' ] := Val( AP_GetEnv( 'MH_TIMEOUT' ) ) // 15 Sec max   
+   ts_hConfig[ 'timeout' ] := Val( AP_GetEnv( 'MH_TIMEOUT' ) ) // 15 Sec max
 
    // ------------------------
 
    ErrorBlock( {| oError | mh_ErrorSys( oError ), Break( oError ) } )
 
-   if ( ts_hConfig[ 'timeout' ] != 0 )
-      pThreadWait := hb_threadStart( @mh_RequestMaxTime(), hb_threadSelf(), ts_hConfig[ 'timeout' ] ) 
-   endif
+   IF ( ts_hConfig[ 'timeout' ] != 0 )
+      pThreadWait := hb_threadStart( @mh_RequestMaxTime(), hb_threadSelf(), ts_hConfig[ 'timeout' ] )
+   ENDIF
 
    cFileName = ap_FileName()
 
@@ -120,15 +120,19 @@ FUNCTION mh_Runner()
       mh_InitProcess()
 
 // ------------------------
+      cExt := alltrim( Lower( Right( cFileName, 5 ) ) )
 
-      IF Lower( Right( cFileName, 4 ) ) == ".hrb"
+      SWITCH cExt
+
+      CASE ".hrb"
 
          hb_hrbDo( hb_hrbLoad( 2, cFileName ), ap_Args() )
+         EXIT
 
-      ELSE // case prg
+      CASE ".prg"
 
-         cCode := MemoRead( cFileName )
-
+         cCode := hb_MemoRead( cFileName )
+         
          IF ts_hConfig[ 'cache' ]
 
             hb_FGetDateTime( cFilename, @tFilename )
@@ -162,7 +166,15 @@ FUNCTION mh_Runner()
 
          ENDIF
 
-      ENDIF
+         EXIT
+
+      CASE ".view"
+
+         ap_Echo( mh_View( hb_FNameNameExt( cFileName ), iif( !Empty( ap_GetPairs() ), ap_GetPairs(), ap_PostPairs() ) ) )
+
+         EXIT
+
+      ENDSWITCH
 
       // Output of buffered text
 
@@ -182,7 +194,7 @@ FUNCTION mh_Runner()
 
    ENDIF
 
-RETURN 
+RETURN
 
 // ----------------------------------------------------------------//
 
@@ -204,14 +216,14 @@ RETURN ts_oSession
 
 FUNCTION mh_RequestMaxTime( pThread, nTime )
 
-   hb_idleSleep( nTime )      
+   hb_idleSleep( nTime )
 
    mh_ExitStatus( 508 )
-   
+
    while( hb_threadQuitRequest( pThread ) )
       hb_idleSleep( 0.01 )
    ENDDO
-  
+
 RETURN
 
 

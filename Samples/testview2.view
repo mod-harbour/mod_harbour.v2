@@ -1,0 +1,6 @@
+<html>
+   <h2>Hello View file !</h2>
+   username: {{ pvalue(1)['username'] }} <br>
+   pass: {{ pvalue(1)['passw'] }} <br>
+   Date: {{ date() }} - {{ time() }}
+</html>

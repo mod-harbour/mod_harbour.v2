@@ -1,0 +1,20 @@
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>POST example via View</title>
+  </head>
+  <body>
+    <form action="testview2.view" method="post">
+      User name:
+      <br>
+      <input type="text" name="username">
+      <br>
+      Password:
+      <br>
+      <input type="password" name="passw">
+      <br><br>
+	  Date: {{ date() }} - {{ time() }}<br><br>
+      <input type="submit" value="Send data">
+    </form>
+  </body>
+</html>
