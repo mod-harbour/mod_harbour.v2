@@ -120,7 +120,7 @@ FUNCTION mh_Runner()
       mh_InitProcess()
 
 // ------------------------
-      cExt := alltrim( Lower( Right( cFileName, 5 ) ) )
+      cExt := Lower( hb_FNameExt( cFileName ) )
 
       SWITCH cExt
 
