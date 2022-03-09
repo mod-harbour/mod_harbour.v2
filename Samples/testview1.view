@@ -13,7 +13,9 @@
       <br>
       <input type="password" name="passw">
       <br><br>
-	  Date: {{ date() }} - {{ time() }}<br><br>
+      <?prg
+        return "Date: {{ date() }} - {{ time() }}<br><br>"
+      ?>
       <input type="submit" value="Send data">
     </form>
   </body>
