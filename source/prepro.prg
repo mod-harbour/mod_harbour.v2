@@ -108,7 +108,7 @@ FUNCTION MH_InlinePRG( cText, oTemplate, cParams, ... )
       IF oTemplate != nil
          AAdd( oTemplate:aSections, cCode )
       ENDIF
-      cText = SubStr( cText, 1, nStart - 1 ) + ( cResult := mh_ExecInline( cCode, cParams, ... ) ) + ;
+      cText = SubStr( cText, 1, nStart - 1 ) + mh_ValtoChar( cResult := mh_ExecInline( cCode, cParams, ... ) ) + ;
          SubStr( cText, nStart + nEnd + 6 )
       IF oTemplate != nil
          AAdd( oTemplate:aResults, cResult )

@@ -132,7 +132,7 @@ FUNCTION mh_Runner()
       CASE ".prg"
 
          cCode := hb_MemoRead( cFileName )
-         
+
          IF ts_hConfig[ 'cache' ]
 
             hb_FGetDateTime( cFilename, @tFilename )
@@ -170,7 +170,7 @@ FUNCTION mh_Runner()
 
       CASE ".view"
 
-         ap_Echo( mh_View( hb_FNameNameExt( cFileName ), iif( !Empty( ap_GetPairs() ), ap_GetPairs(), ap_PostPairs() ) ) )
+         ap_Echo( MH_InlinePRG( mh_View( hb_FNameNameExt( cFileName ), iif( !Empty( ap_GetPairs() ), ap_GetPairs(), ap_PostPairs() ) ) ) )
 
          EXIT
 
