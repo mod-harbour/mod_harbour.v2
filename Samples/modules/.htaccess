@@ -1,1 +1,1 @@
-SetEnv MH_INITPROCESS 	,,pluggins/module_a.hrb,pluggins/module_b.hrb,pluggins/msg.prg,pluggins/cmd.ch
+SetEnv MH_INITPROCESS 	,,pluggins/module_a.hrb,pluggins/module_b.hrb,pluggins/msg.prg,pluggins/cmd.ch,pluggins/init.prg

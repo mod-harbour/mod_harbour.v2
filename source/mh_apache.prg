@@ -531,6 +531,10 @@ FUNCTION mh_InitProcess()
                   CASE cExt == '.hrb'
 
                      mh_HashModules()[ cFile ] := hb_hrbLoad( HB_HRB_BIND_OVERLOAD, cPathFile )
+					 
+					IF lower( HB_FNameName( cPathFile ) ) == 'init' 							
+						hb_hrbDo( mh_HashModules()[ cFile ] )							
+					ENDIF 					 
 
                   CASE cExt == '.prg'
 
@@ -539,6 +543,10 @@ FUNCTION mh_InitProcess()
                      IF ! Empty( oHrb )
 
                         mh_HashModules()[ cFile ] := hb_hrbLoad( HB_HRB_BIND_OVERLOAD, oHrb )
+						
+						IF lower( HB_FNameName( cPathFile ) ) == 'init' 							
+							hb_hrbDo( mh_HashModules()[ cFile ] )							
+						ENDIF 
 
                      ENDIF
 
