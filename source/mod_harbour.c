@@ -206,7 +206,7 @@ static void mod_harbourV2_child_init(apr_pool_t *p, server_rec *s)
 
    for (i = 0; i < mh_config.mh_nVms; i++)
    {
-      vm[i] == 0;
+      vm[i] = 0;
 #ifdef _WINDOWS_
       libmhapache[i] = LoadLibrary(apr_psprintf(p, "%s/%s%d.dll", szTempPath, "libmhapache", i));
       if (libmhapache[i] == NULL)
