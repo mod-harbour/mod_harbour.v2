@@ -341,7 +341,11 @@ FUNCTION mh_LoadHrb_Show()
 
 FUNCTION mh_LoadFile( cFile )
 
-   LOCAL cPath_File := hb_GetEnv( "PRGPATH" ) + '/' + cFile
+   LOCAL cPath_File 
+   
+   cFile := lower( cFile )
+   
+   cPath_File := hb_GetEnv( "PRGPATH" ) + '/' + cFile
 
    IF AScan( ts_aFiles, cFile ) > 0
       RETU ''
