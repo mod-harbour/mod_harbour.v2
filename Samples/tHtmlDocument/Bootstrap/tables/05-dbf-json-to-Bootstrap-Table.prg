@@ -6,11 +6,6 @@ procedure main()
     local oHTMLDoc as object
     local oHeadTitle as object
 
-    cDbf:=hb_getenv('PRGPATH')+'/data/items.dbf'
-    use (cDbf) shared new 
- 
-    cAlias:=alias()  
-
     cHTML:=hb_MemoRead(hb_GetEnv('PRGPATH')+"/json-to-Bootstrap-Table/example/index-dbf.html")
     oHTMLDoc:=THtmlDocument():New(cHTML)
 
