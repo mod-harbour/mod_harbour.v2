@@ -121,7 +121,7 @@ procedure main()
             for nField:=1 to nFields
                 oCell:=oRow:AddNode(THtmlNode():New(oRow,"td"))
                 xValue:=(cAlias)->(FieldGet(nField))
-                if (aDbStruct[nField][DBS_NAME]=="C")
+                if (aDbStruct[nField][DBS_TYPE]=="C")
                     xValue:=allTrim(xValue)
                 endif
                 oCell:text:=xValue
