@@ -1,0 +1,67 @@
+<html>
+<head>
+<title></title>
+<link href="http://v4-alpha.getbootstrap.com/dist/css/bootstrap.min.css" rel="stylesheet" />
+<style>
+body {
+	padding-top: 2rem;
+	padding-bottom: 2rem;
+}
+.row {
+	margin-top: 1rem;
+	margin-bottom: 1rem;
+}
+.row .row {
+	margin-top: 1rem;
+	margin-bottom: 0;
+}
+</style>
+</head>
+<body>
+<div class="container">
+	<div class="page-header">
+		<h2>mod_harbour :: JSON to Bootstrap table</h2>
+	</div>
+	<div class="row">
+		<h4>Bootstrap Table with JSON Data - Ajax request</h4>
+		<div>
+			<div class="createTableJSON"></div>
+			<figure class="highlight">
+				<pre>
+					<h4>Code Used </h4>
+					<code>&lt;script src="./json-to-Bootstrap-Table/example/jsonToTable.js"&gt;&lt;/script&gt;
+						&lt;script&gt;
+							var dtbl = new createTable({
+							url:'./json-to-Bootstrap-Table/example/JSONToBootstrapTable.prg?file=json',
+							wrapper:".createTableJSON"
+							}).create();
+						&lt;/script&gt;
+					</code>
+					<h4> To Pass a Data instead of URL </h4>
+					<code>&lt;script src="./json-to-Bootstrap-Table/example/jsonToTable.js"&gt;&lt;/script&gt;
+						&lt;script&gt;
+							var ctbl = new createTable({
+							data:[{"d":"a", "e":"b"},{"e":"a", "d":"b"}],
+							wrapper:".createTable"
+							}).create();
+						&lt;/script&gt;
+					</code>
+					<h4> JSON Data </h4>
+					<code>
+[{"id": 1,"gender": "Male","first_name": "Randy","last_name": "Russell","email": "rrussell0@ebay.com","ip_address": "65.239.17.202"}, 
+{"id": 2,"gender": "Male","first_name": "Mark","last_name": "Ryan","email": "mryan1@cbsnews.com","ip_address": "69.21.244.122"}.... & more]
+					</code>
+				</pre>
+			</figure>
+		</div>
+	</div>
+</div>
+<script src="./json-to-Bootstrap-Table/example/jsonToTable.min.js"></script>
+<script>
+var dtbl = new createTable({
+	url:'./json-to-Bootstrap-Table/example/JSONToBootstrapTable.prg?file=json',
+	wrapper:".createTableJSON"
+}).create();
+</script>
+</body>
+</html>
