@@ -1,3 +1,9 @@
+#ifdef __PLATFORM__WINDOWS
+   #include "c:\harbour\include\dbstruct.ch"
+#else
+   #include "/usr/include/harbour/dbstruct.ch"
+#endif
+
 procedure main()
 
     local aDbStruct as array
@@ -115,7 +121,7 @@ procedure main()
             for nField:=1 to nFields
                 oCell:=oRow:AddNode(THtmlNode():New(oRow,"td"))
                 xValue:=(cAlias)->(FieldGet(nField))
-                if (aDbStruct[nField][2]=="C")
+                if (aDbStruct[nField][DBS_TYPE]=="C")
                     xValue:=allTrim(xValue)
                 endif
                 oCell:text:=xValue                

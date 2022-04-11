@@ -23,11 +23,6 @@ procedure main()
     local oFigureHighlightPreH4 as object 
     local oFigureHighlightPreCode as object
 
-    cDbf:=hb_getenv('PRGPATH')+'/data/items.dbf'
-    use (cDbf) shared new 
- 
-    cAlias:=alias()  
-
     cHTML:=hb_MemoRead(hb_GetEnv('PRGPATH')+"/json-to-Bootstrap-Table/example/index-json-dbf.html")
     oHTMLDoc:=THtmlDocument():New(cHTML)
 

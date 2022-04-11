@@ -27,7 +27,7 @@ procedure main()
     oHTMLDoc:=THtmlDocument():New(cHTML)
 
     oHeadTitle:=oHTMLDoc:Head:title
-    oHeadTitle:text:="MOD_HARBOUR :: DBF/JSON to Bootstrap table"
+    oHeadTitle:text:="MOD_HARBOUR :: JSON-SERVER/JSON to Bootstrap table"
     
     oDivContainer:=oHTMLDoc:body:div
     oDivContainer:attr:='class="container"'
@@ -35,7 +35,7 @@ procedure main()
     oDivPageHeader:=oDivContainer+"div"
     oDivPageHeader:attr:='class="page-header"'
     oDivPageHeaderH2:=oDivPageHeader:h2
-    oDivPageHeaderH2:text:="mod_harbour :: DBF/JSON to Bootstrap table"
+    oDivPageHeaderH2:text:="mod_harbour :: JSON-SERVER/JSON to Bootstrap table"
     
     oDivPageHeaderRow:=oDivContainer+"div"
     oDivPageHeaderRow:attr:='class="row"'
@@ -60,7 +60,7 @@ procedure main()
 &lt;script src="./json-to-Bootstrap-Table/example/jsonToTable.js"&gt;&lt;/script&gt;
 &lt;script&gt;
     var dtbl = new createTable({
-    url:'./json-to-Bootstrap-Table/example/JSONToBootstrapTable.prg?file=dbf',
+    url:'./json-to-Bootstrap-Table/example/JSONToBootstrapTable.prg?file=json-server',
     wrapper:".createTableJSON"
     }).create();
 &lt;/script&gt;
@@ -91,6 +91,51 @@ procedure main()
 ]
         ENDTEXT
 
+        oFigureHighlightPreH4:=oFigureHighlightPre+"h4"
+        oFigureHighlightPreH4:text:="JSON-SERVER"
+
+        oFigureHighlightPreCode:=oFigureHighlightPre+"code"
+        TEXT INTO oFigureHighlightPreCode:text
+# 🚤 json-server-multiple-files
+
+Using json-server to server multiple json files in less than *45 seconds* (trust me).
+
+https://github.com/naldodj/naldodj-json-server-multiple-files
+
+## Prequisite
+- nodemon `sudo npm install -g nodemon`
+
+## Getting Started
+1. Place your .json files into the `db` folder (⚠️ make sure they match the format)
+2. Install dependencies with `npm install`
+3. Run the server : `npm run start:server`
+
+## Output
+````
+[nodemon] 1.18.10
+[nodemon] to restart at any time, enter `rs`
+[nodemon] watching: test/mock
+[nodemon] starting `node json-server.index.js`
+
+
+🗒    JSON file loaded : places.json
+🗒    JSON file loaded : teams.json
+
+⛴    JSON Server is running at http://localhost:3002
+🥁    Endpoint : http://localhost:3002/organisations
+🥁    Endpoint : http://localhost:3002/tenders
+````
+
+## Todo
+- Check the json format, and remove json that does not match.
+
+## Built With
+- [typicode/json-server](https://github.com/typicode/json-server)
+
+## License
+MIT
+        ENDTEXT
+
     oFigureHighlight:=oDivPageHeaderRowDiv:AddNode(THtmlNode():New(oDivPageHeaderRowDiv,"/figure"))
     
     oScript:=oHTMLDoc:body+"script"
@@ -100,7 +145,7 @@ procedure main()
     TEXT INTO oScript:text
 var dtbl=new createTable(
     {
-        url:'./json-to-Bootstrap-Table/example/JSONToBootstrapTable.prg?file=dbf',
+        url:'./json-to-Bootstrap-Table/example/JSONToBootstrapTable.prg?file=json-server',
         wrapper:".createTableJSON"
     }
 ).create();
