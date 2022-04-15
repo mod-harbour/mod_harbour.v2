@@ -1,0 +1,6 @@
+15.04.2022 -> 2.1.006
+=====================
+New environment variable: MH_MINIMALVERSION. When you create a program that needs a minimum version 
+of the mod, we can set this variable to indicate which version is needed to run the program. ex:
+
+SetEnv MH_MINIMAL VERSION 1.2.005

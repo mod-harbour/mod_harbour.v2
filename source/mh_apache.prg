@@ -30,6 +30,7 @@ STATIC hPP
 // MH_SESSION_SEED   - Default Session Seed
 // MH_INITPROCESS    - Init modules at begin of app
 // MH_PHPTEMP        - Path to PHP prepro temp folder. Note: Add write access to folder.
+// MH_MINIMALVERSION - Set minimal version for execute, ex. 2.1.005
 // ------------------------------------------------------------
 
 FUNCTION Main()
@@ -115,11 +116,10 @@ FUNCTION mh_Runner()
 
       hb_SetEnv( "PRGPATH", cFilePath )
 
-// We can load different modules at the beginning of our program
 
-      mh_InitProcess()
+      mh_InitProcess()		//	We can load different modules at the beginning of our program
+	  mh_MinimalVersion()		//	Check if required a minimal version of mod
 
-// ------------------------
       cExt := Lower( hb_FNameExt( cFileName ) )
 
       SWITCH cExt
@@ -583,6 +583,22 @@ FUNCTION mh_InitProcess()
    ENDIF
 
    mh_AddPPRules()
+
+RETURN NIL
+
+// ----------------------------------------------------------------//
+
+FUNCTION mh_MinimalVersion()
+
+    LOCAL cMinVersion := AP_GetEnv( 'MH_MINIMALVERSION' )   	
+	
+	IF !empty( cMinVersion ) .AND. mh_modversion() < cMinVersion		
+		
+		mh_DoError('Minimal version modHarbour required: ' + cMinVersion + ;
+					'<br>' + 'Version actual: ' + mh_modversion() )
+		__Quit() 					
+	
+	ENDIF
 
 RETURN NIL
 
