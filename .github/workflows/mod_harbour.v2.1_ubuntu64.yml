@@ -4,6 +4,7 @@ on:
   push:
     paths: 
       - '.github/workflows/mod_harbour.v2.1_ubuntu64.yml'
+      - 'whatsnew.txt'      
 
 jobs:
   build:
