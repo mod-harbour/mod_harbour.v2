@@ -4,7 +4,8 @@ on:
   push:
     paths: 
       - '.github/workflows/mod_harbour.v2.1_win64.yml'
-
+      - 'whatsnew.txt'
+      
 jobs:
   build:
     runs-on: windows-2019
