@@ -31,6 +31,7 @@ STATIC hPP
 // MH_INITPROCESS    - Init modules at begin of app
 // MH_PHPTEMP        - Path to PHP prepro temp folder. Note: Add write access to folder.
 // MH_MINIMALVERSION - Set minimal version for execute, ex. 2.1.005
+// MH_DEBUG_ERROR    - If yes/on/1  when error, output to DBWin error traces
 // ------------------------------------------------------------
 
 FUNCTION Main()
@@ -454,11 +455,11 @@ FUNCTION mh_ErrorSys( oError, cCode, cCodePP )
 
    IF ValType( ts_bError ) == 'B'
 
-      Eval( ts_bError, hError )
+      Eval( ts_bError, hError, oError )
 
    ELSE
 
-      mh_ErrorShow( hError )
+      mh_ErrorShow( hError, oError )
 
    ENDIF
 
