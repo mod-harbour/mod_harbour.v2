@@ -54,18 +54,10 @@ jobs:
           xcopy harbour\contrib\mod_harbour.v2\Samples\*.* .\artifact\Samples /E /H /C /I
           xcopy harbour\contrib\mod_harbour.v2\output\win64\mod_harbour.v2.so .\artifact /E /H /C /I
           xcopy harbour\contrib\mod_harbour.v2\output\win64\libmhapache.dll .\artifact /E /H /C /I
-          $MODNAME = findstr /C:"#define MODNAME" harbour\contrib\mod_harbour.v2\source\main.prg
-          $MODNAME = $MODNAME.Replace("#define MODNAME","")
-          $MODNAME = $MODNAME.Replace("'","")
           $MODVERSION = findstr /C:"#define MODVERSION" harbour\contrib\mod_harbour.v2\source\main.prg
           $MODVERSION = $MODVERSION.Replace("#define MODVERSION","")
           $MODVERSION = $MODVERSION.Replace("'","")
           $MODVERSION = $MODVERSION.Trim()
-          $MODNAME = findstr /C:"#define MODNAME" source\main.prg
-          $MODNAME = $MODNAME.Replace("#define MODNAME","")
-          $MODNAME = $MODNAME.Replace("'","")
-          $MODNAME = $MODNAME.Trim()
-          echo "::set-output name=modname::$MODNAME"
           echo "::set-output name=modversion::$MODVERSION"          
 
       - name: Upload mod_harbour.v2.so/libmhapache.dll/Samples to artifact
