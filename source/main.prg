@@ -4,8 +4,8 @@
 ** MIT license
 */
 
-#define MODNAME			'mod_harbour.V2.1'
-#define MODVERSION		'2.1.007'
+#define MODNAME 'mod_harbour.V2.1'
+#define MODVERSION '2.1.007'
 
 #ifdef __PLATFORM__WINDOWS
    #define __HBEXTERN__HBWIN__REQUEST
