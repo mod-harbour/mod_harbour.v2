@@ -48,7 +48,6 @@ jobs:
           ..\..\bin\win\msvc64\hbmk2 mod_harbour.v2.1.hbp -Lc:\Apache24\lib -Ic:\Apache24\include -ic:\Apache24\include
 
       - name: Prepare artifact
-        shell: cmd
         run: |
           mkdir artifact
           mkdir artifact\Samples
