@@ -30,6 +30,10 @@
 #include "../hbnetio/hbnetio.hbx"
 #define __HBEXTERN__HBMISC__REQUEST
 #include "../hbmisc/hbmisc.hbx" 
+#ifdef HB_WITH_ADS
+   #define __HBEXTERN__RDDADS__REQUEST
+   #include "../rddads/rddads.hbx"
+#endif
 
 #include "mh_apache.ch"
 
