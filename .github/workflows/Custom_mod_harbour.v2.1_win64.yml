@@ -1,20 +1,22 @@
 name: Custom mod_harbour.v2.1 for Windows 64 
 
 on:
+
   workflow_dispatch:
     inputs:
       ADS:
         type: boolean
         description: Include ADS
-      LETODB:
-        type: boolean
-        description: Include LETODB
-      MONGODB:
-        type: boolean
-        description: Include MONGODB
       TDOLPHIN:
         type: boolean
         description: Include TDOLPHIN
+      LETODB:
+        type: boolean
+        description: Include LETODB(not yet)
+      MONGODB:
+        type: boolean
+        description: Include MONGODB(not yet)
+
 jobs:
   build:
     runs-on: windows-2019
@@ -35,13 +37,15 @@ jobs:
           (Get-Content -path harbour\contrib\hbssl\hbssl.hbc) -replace 'libeay32','libcrypto-1_1-x64' | Set-Content -path harbour\contrib\hbssl\hbssl.hbc
           (Get-Content -path harbour\contrib\hbssl\hbssl.hbc) -replace 'ssleay32','libssl-1_1-x64' | Set-Content -path harbour\contrib\hbssl\hbssl.hbc
          
-      - name: Download and extract Harbour/Apache24 binaries
+      - name: Download and extract Harbour/Apache24/3rdContribs binaries
         shell: cmd      
         run: |
           curl -OL https://raw.githubusercontent.com/diegofazio/harbour_binaries/master/Windows/harbour_windows_64.zip
           7z x -y harbour_windows_64.zip -oharbour
           curl -OL https://raw.githubusercontent.com/diegofazio/harbour_binaries/master/apache24/win64.zip
           7z x -y win64.zip -oc:\Apache24
+          curl -OL https://raw.githubusercontent.com/diegofazio/harbour_binaries/master/contrib/3rd_contribs.zip
+          7z x -y 3rd_contribs.zip -oharbour/contrib          
 
       - name: Checkout mod_harbour.v2 repo
         uses: actions/checkout@v2
@@ -56,13 +60,19 @@ jobs:
           curl -OL https://raw.githubusercontent.com/diegofazio/harbour_binaries/master/ads64/acesdk-x64.zip
           7z x -y acesdk-x64.zip -oc:\acesdk
 
+      - name: Include TDOLPHIN
+        if: github.event.inputs.TDOLPHIN == 'true'
+        run: |
+          curl -OL https://raw.githubusercontent.com/diegofazio/harbour_binaries/master/dependencies/win64/libmariadb.dll
+
       - name: Build mod_harbour.v2.1
         working-directory: harbour/contrib/mod_harbour.v2
         shell: cmd
         run: |
           if "${{ github.event.inputs.ADS }}" == "true" (set ADS=-DHB_WITH_ADS=c:\acesdk rddads.hbc)
+          if "${{ github.event.inputs.TDOLPHIN }}" == "true" (set TDOLPHIN=-DHB_WITH_TDOLPHIN=yes tdolphin.hbc)
           call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" x86_amd64
-          ..\..\bin\win\msvc64\hbmk2 mod_harbour.v2.1.hbp -comp=msvc64 -Lc:\Apache24\lib -Ic:\Apache24\include %ADS%
+          ..\..\bin\win\msvc64\hbmk2 mod_harbour.v2.1.hbp -comp=msvc64 -Lc:\Apache24\lib -Ic:\Apache24\include %ADS% %TDOLPHIN%
 
       - name: Extract MODVERSION and create artifact folder
         id: generate-name
@@ -78,7 +88,7 @@ jobs:
 
       - name: Check if custom
         id: generate-custom
-        if: github.event.inputs.ADS == 'true' || github.event.inputs.LETODB == 'true'
+        if: github.event.inputs.ADS == 'true' || github.event.inputs.TDOLPHIN == 'true'
         run: echo "::set-output name=custom::custom"  
 
       - name: Prepare artifact
@@ -88,6 +98,7 @@ jobs:
           xcopy harbour\contrib\mod_harbour.v2\output\win64\mod_harbour.v2.so .\artifact /E /H /C /I
           xcopy harbour\contrib\mod_harbour.v2\output\win64\libmhapache.dll .\artifact /E /H /C /I
           if "${{ github.event.inputs.ADS }}" == "true" ( mkdir artifact\ads | xcopy c:\acesdk\*.dll .\artifact\ads /E /H /C /I | echo Include rddads >> .\artifact\notes.txt )
+          if "${{ github.event.inputs.TDOLPHIN }}" == "true" ( mkdir artifact\tdolphin | xcopy libmariadb.dll .\artifact\tdolphin | echo Include TDolphin - MariaDB ver 10.3.6  >> .\artifact\notes.txt )
                    
       - name: Upload mod_harbour.v2.so/libmhapache.dll/Samples to artifact
         uses: actions/upload-artifact@v2

@@ -34,6 +34,10 @@
    #define __HBEXTERN__RDDADS__REQUEST
    #include "../rddads/rddads.hbx"
 #endif
+#ifdef HB_WITH_TDOLPHIN
+   #define __HBEXTERN__TDOLPHIN__REQUEST
+   #include "../tdolphin/tdolphin.hbx"
+#endif  
 
 #include "mh_apache.ch"
 
