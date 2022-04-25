@@ -115,7 +115,7 @@ jobs:
           xcopy harbour\contrib\mod_harbour.v2\Samples\*.* .\artifact\Samples /E /H /C /I
           xcopy harbour\contrib\mod_harbour.v2\output\win64\mod_harbour.v2.so .\artifact /E /H /C /I
           xcopy harbour\contrib\mod_harbour.v2\output\win64\libmhapache.dll .\artifact /E /H /C /I
-          if "${{ github.event.inputs.ADS }}" == "true" ( mkdir artifact\ads | xcopy c:\acesdk\*.dll .\artifact\ads /E /H /C /I | echo Include rddads >> .\artifact\notes.txt )
+          if "${{ github.event.inputs.ADS }}" == "true" ( mkdir artifact\ads | xcopy c:\acesdk\*.dll .\artifact\ads /E /H /C /I | echo Include rddads - ADS ver 11.10 >> .\artifact\notes.txt )
           if "${{ github.event.inputs.TDOLPHIN }}" == "true" ( mkdir artifact\tdolphin | xcopy libmariadb.dll .\artifact\tdolphin | echo Include TDolphin - MariaDB ver 10.3.6  >> .\artifact\notes.txt )
           if "${{ github.event.inputs.LETODB }}" == "true" ( echo Include LETODB ver 2.17 b3  >> .\artifact\notes.txt )
           if "${{ github.event.inputs.LETODBF }}" == "true" ( echo Include LETODBF ver 2021-04-29 22:51  >> .\artifact\notes.txt )
