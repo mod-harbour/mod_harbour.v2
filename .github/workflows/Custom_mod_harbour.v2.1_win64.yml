@@ -16,7 +16,7 @@ on:
       LETODBF:
         type: boolean
         description: Include LETODBF
-      HBMONGODB:
+      HBMONGOC:
         type: boolean
         description: Include HBMONGOC
 
