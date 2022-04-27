@@ -46,7 +46,10 @@
    #define __HBEXTERN__LETODB__REQUEST
    #include "../letodbf/letodb.hbx"
 #endif   
-
+#ifdef HB_WITH_LIBMONGOC
+   #define __HBEXTERN__HBMONGOC__REQUEST
+   #include "../hbmongoc/hbmongoc.hbx"
+#endif   
 
 #include "mh_apache.ch"
 
