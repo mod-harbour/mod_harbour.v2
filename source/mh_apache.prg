@@ -58,6 +58,7 @@ FUNCTION mh_PPRules()
          __pp_Path( hPP, hb_GetEnv( "HB_INCLUDE" ) )
       ENDIF
 
+      __pp_AddRule( hPP, "#define __MODHARBOUR__" )
       __pp_AddRule( hPP, "#xcommand ? [<explist,...>] => ap_Echo( '<br>' [,<explist>] )" )
       __pp_AddRule( hPP, "#xcommand ?? [<explist,...>] => ap_Echo( [<explist>] )" )
       __pp_AddRule( hPP, "#define CRLF hb_OsNewLine()" )
