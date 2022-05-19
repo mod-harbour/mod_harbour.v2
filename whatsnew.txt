@@ -1,3 +1,8 @@
+19.05.2022 -> 2.1.008
+=====================
+Added environment variable __MODHARBOUR__. See samples/ismod.prg 
+
+
 19.04.2022 -> 2.1.007
 =====================
 Added to system errors os, mod version, rdds
