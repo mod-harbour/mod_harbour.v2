@@ -16,9 +16,9 @@ on:
       LETODBF:
         type: boolean
         description: Include LETODBF
-      MONGODB:
+      HBMONGOC:
         type: boolean
-        description: Include HBMONGOC(not yet)
+        description: Include HBMONGOC
 
 jobs:
   build:
@@ -81,6 +81,15 @@ jobs:
           xcopy .\harbour\contrib\letodbf\lib\*.lib .\harbour\lib\win\msvc64 /Y 
           del .\harbour\contrib\letodb\rddleto.hbc 
 
+      - name: Include HBMONGOC
+        if: github.event.inputs.HBMONGOC == 'true'
+        shell: cmd  
+        run: |
+          xcopy .\harbour\contrib\hbmongoc\lib\win\*.lib .\harbour\lib\win\msvc64 /Y 
+          curl -OL https://raw.githubusercontent.com/diegofazio/harbour_binaries/master/mongoc/mongo-c-driver.zip
+          7z x -y mongo-c-driver.zip -oc:\mongo-c-driver
+          xcopy c:\mongo-c-driver\lib\*.lib .\harbour\lib\win\msvc64 /Y 
+
       - name: Build mod_harbour.v2.1
         working-directory: harbour/contrib/mod_harbour.v2
         shell: cmd
@@ -89,8 +98,9 @@ jobs:
           if "${{ github.event.inputs.TDOLPHIN }}" == "true" (set TDOLPHIN=-DHB_WITH_TDOLPHIN=yes tdolphin.hbc)
           if "${{ github.event.inputs.LETODB }}" == "true" (set LETODB=-DHB_WITH_LETODB=yes rddleto.hbc) 
           if "${{ github.event.inputs.LETODBF }}" == "true" (set LETODBF=-DHB_WITH_LETODBF=yes letodb.hbc ) 
+          if "${{ github.event.inputs.HBMONGOC }}" == "true" (set HBMONGOC=-DHB_WITH_LIBMONGOC=yes -DHB_WITH_LIBBSON=yes hbmongoc.hbc ) 
           call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" x86_amd64
-          ..\..\bin\win\msvc64\hbmk2 mod_harbour.v2.1.hbp -comp=msvc64 -Lc:\Apache24\lib -Ic:\Apache24\include %ADS% %TDOLPHIN% %LETODB% %LETODBF%
+          ..\..\bin\win\msvc64\hbmk2 mod_harbour.v2.1.hbp -comp=msvc64 -Lc:\Apache24\lib -Ic:\Apache24\include %ADS% %TDOLPHIN% %LETODB% %LETODBF% %HBMONGOC%
 
       - name: Extract MODVERSION and create artifact folder
         id: generate-name
@@ -106,7 +116,7 @@ jobs:
 
       - name: Check if custom
         id: generate-custom
-        if: github.event.inputs.ADS == 'true' || github.event.inputs.TDOLPHIN == 'true' || github.event.inputs.LETODB == 'true' || github.event.inputs.LETODBF == 'true'
+        if: github.event.inputs.ADS == 'true' || github.event.inputs.TDOLPHIN == 'true' || github.event.inputs.LETODB == 'true' || github.event.inputs.LETODBF == 'true' || github.event.inputs.HBMONGOC == 'true'
         run: echo "::set-output name=custom::custom"  
 
       - name: Prepare artifact
@@ -119,6 +129,7 @@ jobs:
           if "${{ github.event.inputs.TDOLPHIN }}" == "true" ( mkdir artifact\tdolphin | xcopy libmariadb.dll .\artifact\tdolphin | echo Include TDolphin - MariaDB ver 10.3.6  >> .\artifact\notes.txt )
           if "${{ github.event.inputs.LETODB }}" == "true" ( echo Include LETODB ver 2.17 b3  >> .\artifact\notes.txt )
           if "${{ github.event.inputs.LETODBF }}" == "true" ( echo Include LETODBF ver 2021-04-29 22:51  >> .\artifact\notes.txt )
+          if "${{ github.event.inputs.HBMONGOC }}" == "true" ( mkdir artifact\mongoc | xcopy c:\mongo-c-driver\bin\*.dll .\artifact\mongoc /E /H /C /I | echo Include hbmongoc - mongo-c-driver ver 1.21.1 >> .\artifact\notes.txt )          
                    
       - name: Upload mod_harbour.v2.so/libmhapache.dll/Samples to artifact
         uses: actions/upload-artifact@v2

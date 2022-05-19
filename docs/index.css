@@ -1,0 +1,76 @@
+#mytable tbody tr:hover { background-color: #ddd; }
+/*#mytable tr:nth-child(even){background-color: #ddd;}*/
+#mytable { font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;border-collapse: collapse; width: 100%; }
+#mytable thead { background-color: #34506e; color: white;}
+#mytable .text-center { text-align:center;}
+
+code {
+	color: #1a37a8;
+}
+
+.container {
+	margin-top: 10px;
+}
+
+#mylogo {
+	vertical-align: middle;
+	margin-bottom: 8px;
+	margin-right: 40px;		
+	width: 150px;
+}
+
+#logo_mercury {
+    height: 40px;
+    padding-left: 10px;
+    margin-right: 10px;
+}
+
+#logo_tweb {
+	height:45px;
+    padding-left: 6px;
+    margin-right: 10px;
+}
+
+.logo_soporte {
+	height: 40px;
+    padding-left: 10px;
+    margin-right: 10px;
+}
+
+.btnbar {
+	float: right;
+	margin-top: 12px;				
+}
+
+#flag {
+	float: right;
+	margin-top: 4px;
+	margin-right: 10px;
+	width: 30px;
+	cursor: pointer;						
+}
+
+#github {
+	height:30px;
+	float:right
+}		
+
+#mycode {
+	position: fixed;
+	top: 0;
+	left: 0;
+	bottom: 0;
+	right: 0;
+	background-color: #141414;
+	display: none;
+}
+#mycodebar {
+	background-color: gray;
+	color: white;
+	padding-left: 10px;
+}
+#code {
+	position: relative;
+	top: 0px;			
+	height: 95%;
+}	
