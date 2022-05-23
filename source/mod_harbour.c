@@ -48,7 +48,7 @@ typedef struct mod_harbourV2_data
    PHB_ITEM hHashConfig;
 } mod_harbourV2_data;
 
-typedef void (*PMH_APACHE)(void *pRequestRec);
+typedef void (*PMH_APACHE)(void *pRequestRec, int pnUsedVm);
 typedef void (*PMH_INIT)(void *phHash, void *phHashConfig, void *pmh_StartMutex, void *pmh_EndMutex);
 
 #ifdef _WINDOWS_
@@ -327,7 +327,7 @@ static int mod_harbourV2_handler(request_rec *r)
 
    mh_EndMutex();
 
-   _mh_apache(r);
+   _mh_apache(r, nUsedVm);
 
    if (nUsedVm != -1)
    {

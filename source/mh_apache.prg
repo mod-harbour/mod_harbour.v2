@@ -651,6 +651,7 @@ PHB_ITEM * phHash;
 PHB_ITEM * phHashConfig;
 void * pmh_StartMutex;
 void * pmh_EndMutex;
+int nUsedVm;
 
 //----------------------------------------------------------------//
 
@@ -681,11 +682,11 @@ HB_EXPORT_ATTR void mh_init( void * _phHash, void * _phHashConfig, void * _pmh_S
 
 //----------------------------------------------------------------//
 
-HB_EXPORT_ATTR void mh_apache( request_rec * _pRequestRec )
+HB_EXPORT_ATTR void mh_apache( request_rec * _pRequestRec, int _nUsedVm )
 {
    szBody = NULL;
    pRequestRec = _pRequestRec;
-
+   nUsedVm = _nUsedVm;      
    hb_vmThreadInit( NULL );
    HB_FUNC_EXEC(MH_RUNNER);
    hb_vmThreadQuit();
@@ -799,6 +800,13 @@ HB_FUNC(MH_EXITSTATUS)
    {
       rec->status = hb_parni(1);
    };
+}
+
+//----------------------------------------------------------------//
+
+HB_FUNC( MH_USEDVM )
+{
+   hb_retni( nUsedVm );
 }
 
 //----------------------------------------------------------------//
