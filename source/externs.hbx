@@ -3565,6 +3565,7 @@ extern MH_REDIRECT
 extern MH_VIEW
 extern MH_CSS
 extern MH_JS
+extern MH_USEDVM
 
 // Trace...
 

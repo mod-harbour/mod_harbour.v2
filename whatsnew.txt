@@ -1,4 +1,4 @@
-24.05.2022 -> 2.1.009
+24.05.2022 -> 2.1.010
 =====================
 Fixed bug. In V2 it didn't work correctly when we set the HB_INCLUDE variable. 
 This gave us an error when, for example, using the #include command. By default 
@@ -8,6 +8,12 @@ we want and set the variable like this
 // {% hb_setenv( 'HB_INCLUDE', <path> ) %}
 
 See example in samples/path
+
+
+23.05.2022 -> 2.1.009
+=====================
+Added mh_UsedVm() function. Returns the order number(int) of the harbour VM used for the request. If the number exceeds the MH_NVMS parameter, the function will returns -1.
+
 
 19.05.2022 -> 2.1.008
 =====================
