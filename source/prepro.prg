@@ -72,7 +72,7 @@ FUNCTION MH_Compile( cCode, ... )
 
    mh_ReplaceBlocks( @cCode, "{%", "%}" )   
 
-   cCodePP := __pp_Process( mh_PPRules(), cCode )
+   cCodePP := __pp_Process( mh_PPRules(), cCode )   
 
 	oHrb = HB_CompileFromBuf( cCodePP, .T., "-n", "-q2", "-I" + cHBheader, ;
 			"-I" + hb_GetEnv( "HB_INCLUDE" ), hb_GetEnv( "HB_USER_PRGFLAGS" ) )	

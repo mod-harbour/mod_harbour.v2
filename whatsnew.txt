@@ -1,3 +1,14 @@
+24.05.2022 -> 2.1.009
+=====================
+Fixed bug. In V2 it didn't work correctly when we set the HB_INCLUDE variable. 
+This gave us an error when, for example, using the #include command. By default 
+it always looks in c:\harbour\include. Now we can put our includes in the folder 
+we want and set the variable like this
+
+// {% hb_setenv( 'HB_INCLUDE', <path> ) %}
+
+See example in samples/path
+
 19.05.2022 -> 2.1.008
 =====================
 Added environment variable __MODHARBOUR__. See samples/ismod.prg 

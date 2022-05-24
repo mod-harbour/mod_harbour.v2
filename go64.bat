@@ -15,6 +15,7 @@ if errorlevel 1 goto error
 @del output\win64\libmhapache.exp
 @del output\win64\libmhapache.lib
 
+
 copy output\win64\mod_harbour.v2.so c:\xampp\apache\modules\mod_harbour.v2.so
 copy output\win64\libmhapache.dll c:\xampp\htdocs\libmhapache.dll
 
