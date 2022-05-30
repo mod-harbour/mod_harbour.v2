@@ -4,8 +4,6 @@
 
 function main()
 
-	MYTIME
-	
-	? mh_modversion()
+	MYTIME	
 
 retu nil 
