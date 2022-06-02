@@ -45,8 +45,10 @@ FUNCTION mh_PPRules()
    LOCAL cOs := OS()
    LOCAL n, aPair, cExt
    
+	//	If we leave the initialization and load in static, if a new position with a new path enters,
+	//	we cannot tell the prepro with __pp_Path to find the new path inside   
 
-    IF hPP == nil
+    //IF hPP == nil
 
       hPP := __pp_Init()
 
@@ -77,14 +79,8 @@ FUNCTION mh_PPRules()
       __pp_AddRule( hPP, "#xcommand FINALLY => ALWAYS" )
       __pp_AddRule( hPP, "#xcommand DEFAULT <v1> TO <x1> [, <vn> TO <xn> ] => ;" + ;
          "IF <v1> == NIL ; <v1> := <x1> ; END [; IF <vn> == NIL ; <vn> := <xn> ; END ]" )
-		 
-	ELSE 
-	
-		IF ! Empty( hb_GetEnv( "HB_INCLUDE" ) )
-			 __pp_Path( hPP, hb_GetEnv( "HB_INCLUDE" ) )
-		ENDIF	
 
-    ENDIF
+    //ENDIF
 
 RETURN hPP
 
@@ -670,21 +666,23 @@ int nUsedVm;
 
 //----------------------------------------------------------------//
 
-HB_EXPORT_ATTR void mh_init( void * _phHash, void * _phHashConfig, void * _pmh_StartMutex, void * _pmh_EndMutex )
+HB_EXPORT_ATTR PHB_ITEM mh_init( void * _phHash, void * _phHashConfig, void * _pmh_StartMutex, void * _pmh_EndMutex )
 {
    if( ! hb_vmIsActive() ) {
       hb_vmInit( HB_TRUE );
       if ( _phHash == NULL ) {
-          phHash = _phHash;
-          phHashConfig = _phHashConfig;
           phHash = hb_hashNew(NULL);
           phHashConfig = hb_hashNew(NULL);
+      } else {
+         phHash = _phHash;
+         phHashConfig = _phHashConfig;
       };
       hPcodeCached   = hb_hashNew(NULL);
       hHashModules   = hb_hashNew(NULL);
       pmh_StartMutex = _pmh_StartMutex;
       pmh_EndMutex = _pmh_EndMutex;
    };
+   return phHash;
 }
 
 //----------------------------------------------------------------//

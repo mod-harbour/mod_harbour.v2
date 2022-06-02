@@ -49,7 +49,7 @@ typedef struct mod_harbourV2_data
 } mod_harbourV2_data;
 
 typedef void (*PMH_APACHE)(void *pRequestRec, int pnUsedVm);
-typedef void (*PMH_INIT)(void *phHash, void *phHashConfig, void *pmh_StartMutex, void *pmh_EndMutex);
+typedef PHB_ITEM (*PMH_INIT)(void *phHash, void *phHashConfig, void *pmh_StartMutex, void *pmh_EndMutex);
 
 #ifdef _WINDOWS_
 HMODULE libmhapache[NUM_VMS];
@@ -224,7 +224,7 @@ static void mod_harbourV2_child_init(apr_pool_t *p, server_rec *s)
       };
       _mh_init = dlsym(libmhapache[i], "mh_init");
 #endif
-      _mh_init(global_data->hHash, global_data->hHashConfig, (void *)mh_StartMutex, (void *)mh_EndMutex);
+      global_data->hHash = _mh_init(global_data->hHash, global_data->hHashConfig, (void *)mh_StartMutex, (void *)mh_EndMutex);
    }
 }
 
