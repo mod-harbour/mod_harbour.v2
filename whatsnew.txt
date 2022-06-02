@@ -1,6 +1,6 @@
 02.06.2022 -> 2.1.011
 =====================
-Fixed persistence between VMs
+Fixed persistence between VMs 
 
 24.05.2022 -> 2.1.010
 =====================
