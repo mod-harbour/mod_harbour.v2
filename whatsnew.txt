@@ -1,3 +1,7 @@
+02.06.2022 -> 2.1.011
+=====================
+Fixed persistence between VMs
+
 24.05.2022 -> 2.1.010
 =====================
 Fixed bug. In V2 it didn't work correctly when we set the HB_INCLUDE variable. 
