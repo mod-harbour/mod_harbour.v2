@@ -44,11 +44,9 @@ FUNCTION mh_PPRules()
 
    LOCAL cOs := OS()
    LOCAL n, aPair, cExt
-   
-	//	If we leave the initialization and load in static, if a new position with a new path enters,
-	//	we cannot tell the prepro with __pp_Path to find the new path inside   
+ 
 
-    //IF hPP == nil
+    IF hPP == nil
 
       hPP := __pp_Init()
 
@@ -79,8 +77,14 @@ FUNCTION mh_PPRules()
       __pp_AddRule( hPP, "#xcommand FINALLY => ALWAYS" )
       __pp_AddRule( hPP, "#xcommand DEFAULT <v1> TO <x1> [, <vn> TO <xn> ] => ;" + ;
          "IF <v1> == NIL ; <v1> := <x1> ; END [; IF <vn> == NIL ; <vn> := <xn> ; END ]" )
+		 
+	ELSE 
+	
+		IF ! Empty( hb_GetEnv( "HB_INCLUDE" ) )
+			 __pp_Path( hPP, hb_GetEnv( "HB_INCLUDE" ) )
+		ENDIF			 
 
-    //ENDIF
+    ENDIF
 
 RETURN hPP
 
