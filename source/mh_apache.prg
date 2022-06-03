@@ -670,23 +670,35 @@ int nUsedVm;
 
 //----------------------------------------------------------------//
 
-HB_EXPORT_ATTR PHB_ITEM mh_init( void * _phHash, void * _phHashConfig, void * _pmh_StartMutex, void * _pmh_EndMutex )
+HB_EXPORT_ATTR void mh_init( void * _phHash, void * _phHashConfig, void * _pmh_StartMutex, void * _pmh_EndMutex )
 {
    if( ! hb_vmIsActive() ) {
       hb_vmInit( HB_TRUE );
-      if ( _phHash == NULL ) {
-          phHash = hb_hashNew(NULL);
-          phHashConfig = hb_hashNew(NULL);
-      } else {
-         phHash = _phHash;
-         phHashConfig = _phHashConfig;
+      if ( _phHash != NULL ) {
+          phHash = _phHash;
+          phHashConfig = _phHashConfig;
       };
       hPcodeCached   = hb_hashNew(NULL);
       hHashModules   = hb_hashNew(NULL);
       pmh_StartMutex = _pmh_StartMutex;
       pmh_EndMutex = _pmh_EndMutex;
    };
+}
+
+//----------------------------------------------------------------//
+
+HB_EXPORT_ATTR PHB_ITEM mh_HashInit( void * _phHash )
+{
+   phHash = hb_hashNew(NULL);
    return phHash;
+}
+
+//----------------------------------------------------------------//
+
+HB_EXPORT_ATTR PHB_ITEM mh_HashConfigInit( void * _phHashConfig )
+{
+   phHashConfig = hb_hashNew(NULL);
+   return phHashConfig;
 }
 
 //----------------------------------------------------------------//

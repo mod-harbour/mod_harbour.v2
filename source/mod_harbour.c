@@ -49,7 +49,9 @@ typedef struct mod_harbourV2_data
 } mod_harbourV2_data;
 
 typedef void (*PMH_APACHE)(void *pRequestRec, int pnUsedVm);
-typedef PHB_ITEM (*PMH_INIT)(void *phHash, void *phHashConfig, void *pmh_StartMutex, void *pmh_EndMutex);
+typedef void  (*PMH_INIT)(void *phHash, void *phHashConfig, void *pmh_StartMutex, void *pmh_EndMutex);
+typedef PHB_ITEM (*PMH_HASHINIT)(void *phHash);
+typedef PHB_ITEM (*PMH_HASHCONFIGINIT)(void *phHashConfig);
 
 #ifdef _WINDOWS_
 HMODULE libmhapache[NUM_VMS];
@@ -174,6 +176,8 @@ static void mod_harbourV2_child_init(apr_pool_t *p, server_rec *s)
    int i;
    mod_harbourV2_data *global_data;
    PMH_INIT _mh_init = NULL;
+   PMH_HASHINIT _mh_HashInit = NULL;
+   PMH_HASHCONFIGINIT _mh_HashConfigInit = NULL;
 
    rs = apr_global_mutex_child_init(&harbour_mutex,
                                     apr_global_mutex_lockfile(harbour_mutex),
@@ -224,8 +228,20 @@ static void mod_harbourV2_child_init(apr_pool_t *p, server_rec *s)
       };
       _mh_init = dlsym(libmhapache[i], "mh_init");
 #endif
-      global_data->hHash = _mh_init(global_data->hHash, global_data->hHashConfig, (void *)mh_StartMutex, (void *)mh_EndMutex);
+      _mh_init(global_data->hHash, global_data->hHashConfig, (void *)mh_StartMutex, (void *)mh_EndMutex);
+      if ( i == 0 ) {
+#ifdef _WINDOWS_
+         _mh_HashInit = (PMH_HASHINIT)GetProcAddress(libmhapache[i], "mh_HashInit");         
+         _mh_HashConfigInit = (PMH_HASHCONFIGINIT)GetProcAddress(libmhapache[i], "mh_HashConfigInit");                  
+#else
+         _mh_HashInit = dlsym(libmhapache[i], "mh_HashInit");
+         _mh_HashConfigInit = dlsym(libmhapache[i], "mh_HashConfigInit");
+#endif
+         global_data->hHash = _mh_HashInit( global_data->hHash );
+         global_data->hHashConfig = _mh_HashConfigInit( global_data->hHashConfig );
+      }
    }
+
 }
 
 //----------------------------------------------------------------//

@@ -1,6 +1,10 @@
+03.06.2022 -> 2.1.012
+=====================
+Fixed persistence between VMs in Global HashConfig
+
 02.06.2022 -> 2.1.011
 =====================
-Fixed persistence between VMs 
+Fixed persistence between VMs in Global Hash
 
 24.05.2022 -> 2.1.010
 =====================
