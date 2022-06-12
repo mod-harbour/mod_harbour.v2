@@ -5,7 +5,7 @@
 */
 
 #define MODNAME 'mod_harbour.V2.1'
-#define MODVERSION '2.1.012'
+#define MODVERSION '2.1.013'
 
 #ifdef __PLATFORM__WINDOWS
    #define __HBEXTERN__HBWIN__REQUEST

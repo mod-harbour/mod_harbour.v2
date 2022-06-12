@@ -55,10 +55,10 @@ FUNCTION mh_PPRules()
       CASE "Linux" $ cOs   ; __pp_Path( hPP, "~/harbour/include" )
       ENDCASE
 
-      IF ! Empty( hb_GetEnv( "HB_INCLUDE" ) )
-         __pp_Path( hPP, hb_GetEnv( "HB_INCLUDE" ) )
-      ENDIF
-
+      __pp_AddRule( hPP, "#xcommand static [<explist,...>]  => THREAD STATIC [<explist>]" )
+      __pp_AddRule( hPP, "#xcommand THREAD STATIC function <FuncName>([<params,...>]) => STAT FUNCTION <FuncName>( [<params>] )" )
+      __pp_AddRule( hPP, "#xcommand THREAD STATIC procedure <ProcName>([<params,...>]) => STAT PROCEDURE <ProcName>( [<params>] )" )
+	  
       __pp_AddRule( hPP, "#define __MODHARBOUR__" )
       __pp_AddRule( hPP, "#xcommand ? [<explist,...>] => ap_Echo( '<br>' [,<explist>] )" )
       __pp_AddRule( hPP, "#xcommand ?? [<explist,...>] => ap_Echo( [<explist>] )" )
@@ -78,13 +78,13 @@ FUNCTION mh_PPRules()
       __pp_AddRule( hPP, "#xcommand DEFAULT <v1> TO <x1> [, <vn> TO <xn> ] => ;" + ;
          "IF <v1> == NIL ; <v1> := <x1> ; END [; IF <vn> == NIL ; <vn> := <xn> ; END ]" )
 		 
-	ELSE 
 	
-		IF ! Empty( hb_GetEnv( "HB_INCLUDE" ) )
-			 __pp_Path( hPP, hb_GetEnv( "HB_INCLUDE" ) )
-		ENDIF			 
-
     ENDIF
+	
+	IF ! Empty( hb_GetEnv( "HB_INCLUDE" ) )
+	  __pp_Path( hPP, hb_GetEnv( "HB_INCLUDE" ) )
+	ENDIF			 
+
 
 RETURN hPP
 

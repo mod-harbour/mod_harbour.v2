@@ -1,3 +1,10 @@
+12.06.2022 -> 2.1.13
+=====================
+Golden rule for the mod: all statics must be thread statics. We have added a directive that 
+automatically changes any variable of type static to thread static. 
+
+Check this test -> samples/classdata.prg
+
 03.06.2022 -> 2.1.012
 =====================
 Fixed persistence between VMs in Global HashConfig
