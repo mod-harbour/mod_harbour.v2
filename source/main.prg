@@ -51,6 +51,11 @@
    #include "../hbmongoc/hbmongoc.hbx"
 #endif   
 
+#ifdef HB_WITH_ZEBRA
+#define __HBEXTERN__HBZEBRA__REQUEST
+#include "../hbzebra/hbzebra.hbx"
+#endif   
+
 #include "mh_apache.ch"
 
 // ----------------------------------------------------------------//

@@ -19,6 +19,9 @@ on:
       HBMONGOC:
         type: boolean
         description: Include HBMONGOC
+      HBZEBRA:
+        type: boolean
+        description: Include HBZEBRA
 
 jobs:
   build:
@@ -99,8 +102,9 @@ jobs:
           if "${{ github.event.inputs.LETODB }}" == "true" (set LETODB=-DHB_WITH_LETODB=yes rddleto.hbc) 
           if "${{ github.event.inputs.LETODBF }}" == "true" (set LETODBF=-DHB_WITH_LETODBF=yes letodb.hbc ) 
           if "${{ github.event.inputs.HBMONGOC }}" == "true" (set HBMONGOC=-DHB_WITH_LIBMONGOC=yes -DHB_WITH_LIBBSON=yes hbmongoc.hbc ) 
+          if "${{ github.event.inputs.HBZEBRA }}" == "true" (set HBZEBRA=-DHB_WITH_ZEBRA=yes hbzebra.hbc )
           call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" x86_amd64
-          ..\..\bin\win\msvc64\hbmk2 mod_harbour.v2.1.hbp -comp=msvc64 -Lc:\Apache24\lib -Ic:\Apache24\include %ADS% %TDOLPHIN% %LETODB% %LETODBF% %HBMONGOC%
+          ..\..\bin\win\msvc64\hbmk2 mod_harbour.v2.1.hbp -comp=msvc64 -Lc:\Apache24\lib -Ic:\Apache24\include %ADS% %TDOLPHIN% %LETODB% %LETODBF% %HBMONGOC% %HBZEBRA%
 
       - name: Extract MODVERSION and create artifact folder
         id: generate-name
