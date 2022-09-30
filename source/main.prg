@@ -50,7 +50,10 @@
    #define __HBEXTERN__HBMONGOC__REQUEST
    #include "../hbmongoc/hbmongoc.hbx"
 #endif   
-
+#ifdef HB_WITH_PGSQL
+   #define __HBEXTERN__HBPGSQL__REQUEST
+   #include "../hbpgsql/hbpgsql.hbx"
+#endif   
 #ifdef HB_WITH_ZEBRA
 #define __HBEXTERN__HBZEBRA__REQUEST
 #include "../hbzebra/hbzebra.hbx"

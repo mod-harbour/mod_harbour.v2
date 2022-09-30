@@ -19,6 +19,9 @@ on:
       HBMONGOC:
         type: boolean
         description: Include HBMONGOC
+      HBPGSQL:
+        type: boolean
+        description: Include HBPGSQL
       HBZEBRA:
         type: boolean
         description: Include HBZEBRA
@@ -93,6 +96,13 @@ jobs:
           7z x -y mongo-c-driver.zip -oc:\mongo-c-driver
           xcopy c:\mongo-c-driver\lib\*.lib .\harbour\lib\win\msvc64 /Y 
 
+      - name: Include HBPGSQL
+        if: github.event.inputs.HBPGSQL == 'true'
+        shell: cmd  
+        run: |
+          curl -OL https://raw.githubusercontent.com/diegofazio/harbour_binaries/master/pgsql/pgsql-driver.zip
+          7z x -y pgsql-driver.zip -oc:\pgsql-driver
+
       - name: Build mod_harbour.v2.1
         working-directory: harbour/contrib/mod_harbour.v2
         shell: cmd
@@ -102,9 +112,10 @@ jobs:
           if "${{ github.event.inputs.LETODB }}" == "true" (set LETODB=-DHB_WITH_LETODB=yes rddleto.hbc) 
           if "${{ github.event.inputs.LETODBF }}" == "true" (set LETODBF=-DHB_WITH_LETODBF=yes letodb.hbc ) 
           if "${{ github.event.inputs.HBMONGOC }}" == "true" (set HBMONGOC=-DHB_WITH_LIBMONGOC=yes -DHB_WITH_LIBBSON=yes hbmongoc.hbc ) 
+          if "${{ github.event.inputs.HBPGSQL }}" == "true" (set HBPGSQL=-DHB_WITH_PGSQL=yes hbpgsql.hbc )           
           if "${{ github.event.inputs.HBZEBRA }}" == "true" (set HBZEBRA=-DHB_WITH_ZEBRA=yes hbzebra.hbc )
           call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" x86_amd64
-          ..\..\bin\win\msvc64\hbmk2 mod_harbour.v2.1.hbp -comp=msvc64 -Lc:\Apache24\lib -Ic:\Apache24\include %ADS% %TDOLPHIN% %LETODB% %LETODBF% %HBMONGOC% %HBZEBRA%
+          ..\..\bin\win\msvc64\hbmk2 mod_harbour.v2.1.hbp -comp=msvc64 -Lc:\Apache24\lib -Ic:\Apache24\include %ADS% %TDOLPHIN% %LETODB% %LETODBF% %HBMONGOC% %HBPGSQL% %HBZEBRA%
 
       - name: Extract MODVERSION and create artifact folder
         id: generate-name
@@ -134,6 +145,7 @@ jobs:
           if "${{ github.event.inputs.LETODB }}" == "true" ( echo Include LETODB ver 2.17 b3  >> .\artifact\notes.txt )
           if "${{ github.event.inputs.LETODBF }}" == "true" ( echo Include LETODBF ver 2021-04-29 22:51  >> .\artifact\notes.txt )
           if "${{ github.event.inputs.HBMONGOC }}" == "true" ( mkdir artifact\mongoc | xcopy c:\mongo-c-driver\bin\*.dll .\artifact\mongoc /E /H /C /I | echo Include hbmongoc - mongo-c-driver ver 1.21.1 >> .\artifact\notes.txt )
+          if "${{ github.event.inputs.HBPGSQL }}" == "true" ( mkdir artifact\pgsql | xcopy c:\pgsql-driver\bin\*.dll .\artifact\pgsql /E /H /C /I | echo Include hbpgsql - pgsql-driver ver 14.5 >> .\artifact\notes.txt )          
           if "${{ github.event.inputs.HBZEBRA }}" == "true" ( echo Include HBZEBRA >> .\artifact\notes.txt )
                    
       - name: Upload mod_harbour.v2.so/libmhapache.dll/Samples to artifact
