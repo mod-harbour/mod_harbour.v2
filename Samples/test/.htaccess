@@ -1,0 +1,4 @@
+SetEnv APP_TITLE           "test"
+SetEnv PATH_APP            "/samples/test"
+
+DirectoryIndex index.html
