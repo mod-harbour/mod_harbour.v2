@@ -26,6 +26,13 @@ FUNCTION task()
       oDATA[ "value" ] := task3()
       EXIT
 
+   CASE 'task4'
+      oDATA[ "error" ] := ''
+      oDATA[ "success" ] := .T.
+      hb_jsonDecode( hPost[ 'values' ], @oValues )
+      oDATA[ "value" ] := task4( oValues )
+      EXIT
+
    OTHERWISE
       ERROR( "TASK NO ENCONTRADA" )
    END
@@ -50,6 +57,25 @@ return hOut
 function task3()
 
 return NOEXISTE
+
+function task4( hParams )
+
+   LOCAL aFiles := {}, hParam := {=>}
+
+   if !hb_DirExists( hb_GetEnv( 'PRGPATH' ) + "/Files")
+      hb_DirCreate( hb_GetEnv( 'PRGPATH' ) + "/Files" )
+   end
+
+   FOR EACH hParam in hParams['FILES']
+
+      hb_MemoWrit( hb_GetEnv( 'PRGPATH' ) + "/files/" + hParam[ 'name' ], ;
+         hb_base64Decode( SubStr( hParam[ 'data' ], nStart := At( "base64,", hParam[ 'data' ] ) + 7 ) ) )
+
+      AAdd( aFiles, hb_DirBase() + "\files\" + hParam[ 'name' ] )
+
+   NEXT
+
+return "Se subieron " + Str( Len( aFiles ) ) + " archivos"
 
 
 // FUNCIONES BASICAS PARA TODOS LOS PROYECTOS //
