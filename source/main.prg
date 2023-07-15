@@ -72,11 +72,3 @@ retu MODNAME
 function MH_ModVersion()
 
 retu MODVERSION 
-
-// ----------------------------------------------------------------//
-// xhb fix
-#ifdef __PLATFORM__WINDOWS
-FUNCTION SetErrorMode( ... ) 
-
-RETURN wapi_SetErrorMode( ... )
-#endif
