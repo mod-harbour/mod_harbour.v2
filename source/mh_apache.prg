@@ -33,6 +33,7 @@ THREAD STATIC hPP
 // MH_MINIMALVERSION - Set minimal version for execute, ex. 2.1.005
 // MH_DEBUG_ERROR    - If yes/on/1  when error, output to DBWin error traces
 // ------------------------------------------------------------
+extern AP_CONNECTION_ABORTED
 
 FUNCTION Main()
 
@@ -828,6 +829,20 @@ HB_FUNC(MH_EXITSTATUS)
 HB_FUNC( MH_USEDVM )
 {
    hb_retni( nUsedVm );
+}
+
+//----------------------------------------------------------------//
+// add:WenSheng:is connection still open?
+
+HB_FUNC( AP_CONNECTION_ABORTED )
+{
+  unsigned aborted;
+  aborted = GetRequestRec()->connection->aborted;
+  if(aborted){
+  	hb_retl(HB_TRUE);
+  }else{
+  	hb_retl(HB_FALSE);
+  }
 }
 
 //----------------------------------------------------------------//
