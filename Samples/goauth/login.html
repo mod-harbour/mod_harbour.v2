@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login with Google</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background: linear-gradient(135deg, #ff9a9e 0%, #fad0c4 99%, #fad0c4 100%);
+            font-family: Arial, sans-serif;
+        }
+        .login-container {
+            background: #ffffff;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            max-width: 400px;
+            width: 100%;
+        }
+        .login-container h1 {
+            margin-bottom: 1rem;
+            color: #333;
+        }
+        .login-container input[type="text"],
+        .login-container input[type="password"] {
+            width: calc(100% - 1rem);
+            padding: 0.5rem;
+            margin: 0.5rem 0;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+        .login-container button {
+            width: 100%;
+            padding: 0.75rem;
+            margin: 1rem 0;
+            background: #ff6f61;
+            border: none;
+            border-radius: 5px;
+            color: #fff;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        .login-container button:hover {
+            background: #ff4a3d;
+        }
+        .login-container .google-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            padding: 0.75rem;
+            background: #4285F4;
+            border: none;
+            border-radius: 5px;
+            color: #fff;
+            font-size: 1rem;
+            cursor: pointer;
+            text-decoration: none;
+            transition: background 0.3s;
+        }
+        .login-container .google-btn:hover {
+            background: #357ae8;
+        }
+        .login-container .google-btn img {
+            margin-right: 0.5rem;
+        }
+        .login-container p {
+            margin: 1rem 0;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <h1>Init Session</h1>
+        <form>
+            <input type="text" placeholder="User" required>
+            <input type="password" placeholder="password" required>
+            <button type="submit" disabled>Start</button>
+        </form>
+        <p>o</p>
+        
+        <a href="{{href}}" class="google-btn">
+            <img src="https://img.icons8.com/color/16/000000/google-logo.png" alt="Google">
+            Start using Google
+        </a>
+    </div>
+</body>
+</html>
