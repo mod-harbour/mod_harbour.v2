@@ -3,6 +3,7 @@
 **
 */
 
+#include <http_request.h> // add:WenSheng:2023.05.24
 #include <http_protocol.h>
 #include <apr_pools.h>
 #include <util_cookies.h>
@@ -400,4 +401,68 @@ HB_FUNC(AP_PARSE_FROM_DATA) //Parse Post values to hash. NOTE: Should not be cal
    }
 
    hb_itemReturnRelease(hPostParam);   
+}
+
+/*
+	add:WenSheng:2023.05.24: 
+	void ap_internal_redirect (const char *new_uri, request_rec *r) docstore.mik.ua/orelly/apache_mod/141.htm
+*/
+HB_FUNC( AP_REDIRECT )
+{
+  ap_internal_redirect( ( const char * ) hb_parc( 1 ), GetRequestRec() );
+  hb_ret();
+}
+// int ap_rflush (request_rec *r) docstore.mik.ua/orelly/apache_mod/137.htm
+HB_FUNC( AP_RFLUSH )
+{
+  hb_retni( (int) ap_rflush( GetRequestRec() ) );
+  hb_ret();
+}
+// add:WenSheng:is connection still open?
+HB_FUNC( AP_CONNECTION_ABORTED )
+{
+  unsigned aborted;
+  aborted = GetRequestRec()->connection->aborted;
+  if(aborted){
+  	hb_retl(HB_TRUE);
+  }else{
+  	hb_retl(HB_FALSE);
+  }
+}
+// server IP address
+HB_FUNC( AP_LOCAL_IP )
+{
+  char * local_ip = GetRequestRec()->connection->local_ip;
+ 	hb_retc(local_ip);
+}
+// used for ap_get_server_name when UseCanonicalName is set to DNS (ignores setting of HostnameLookups)
+HB_FUNC( AP_LOCAL_HOST )
+{
+  char * local_host = GetRequestRec()->connection->local_host;
+ 	hb_retc(local_host);
+}
+HB_FUNC( AP_CLIENT_IP )
+{
+  char * client_ip = GetRequestRec()->connection->client_ip;
+ 	hb_retc(client_ip);
+}
+/*
+	char *remote_host This field may contain the DNS name of the client. The various caveats described in Chapter 9, Perl API Reference Guide, for the remote_host() method of the Apache::Connection class also apply here. It is almost always a better idea to use the high-level API call ap_ get_remote_host() than to access this field directly.
+*/
+HB_FUNC( AP_REMOTE_HOST )
+{
+  char * remote_host = GetRequestRec()->connection->remote_host;
+ 	hb_retc(remote_host);
+}
+
+// client_addr
+HB_FUNC( AP_CLIENT_HOSTNAME )
+{
+  apr_sockaddr_t * addr = GetRequestRec()->connection->client_addr;
+ 	hb_retc( addr->hostname );
+}
+HB_FUNC( AP_CLIENT_SERVNAME )
+{
+  apr_sockaddr_t * addr = GetRequestRec()->connection->client_addr;
+ 	hb_retc( addr->servname );
 }
