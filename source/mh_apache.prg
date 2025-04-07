@@ -119,6 +119,18 @@ FUNCTION mh_Runner()
 
    cFileName = ap_FileName()
 
+   // add:WenSheng:2025.04.03: .prg 檔案找不到，改找 .hrb
+   IF ! File( cFileName )
+      cExt := Lower( hb_FNameExt( cFileName ) )
+      DO CASE
+         CASE cExt == '.prg'
+              cFileName := hb_fNameDir( cFileName ) + hb_fNameName( cFileName )+'.hrb'  // 將檔名 'xxx.prg' 重新組合成 'xxx.hrb'
+              
+         CASE cExt == '.hrb'
+              cFileName := hb_fNameDir( cFileName ) + hb_fNameName( cFileName )+'.prg'  // 將檔名 'xxx.hrb' 重新組合成 'xxx.prg'
+      ENDCASE
+   ENDIF
+
    IF File( cFileName )
 
       cFilePath := SubStr( cFileName, 1, RAt( "/", cFileName ) + RAt( "\", cFileName ) - 1 )
