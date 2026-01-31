@@ -224,7 +224,7 @@ static void mod_harbourV2_child_init(apr_pool_t *p, server_rec *s)
       if (libmhapache[i] == NULL)
       {
          ap_log_error(APLOG_MARK, APLOG_CRIT, rs, s, "MH_MESSAGE: dlopen error: %s", dlerror());
-         return HTTP_INTERNAL_SERVER_ERROR;
+         return;
       };
       _mh_init = dlsym(libmhapache[i], "mh_init");
 #endif
