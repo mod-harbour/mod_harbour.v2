@@ -642,6 +642,7 @@ FUNCTION mh_Redirect( cUrl )
 #pragma BEGINDUMP
 
 #include <http_protocol.h>
+#include <http_request.h> // call : ap_internal_redirect()
 #include <apr_pools.h>
 #include <hbapiitm.h>
 #include <hbapierr.h>
@@ -829,7 +830,5 @@ HB_FUNC( MH_USEDVM )
 {
    hb_retni( nUsedVm );
 }
-
-//----------------------------------------------------------------//
 
 #pragma ENDDUMP
